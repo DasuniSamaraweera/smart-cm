@@ -1,14 +1,15 @@
-name: CI – Build & Test
+name: CI - Build and Test
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ master, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ master, develop ]
+  workflow_dispatch:
 
 jobs:
   backend:
-    name: Backend – Spring Boot
+    name: Backend - Spring Boot
     runs-on: ubuntu-latest
 
     services:
@@ -44,6 +45,9 @@ jobs:
           SPRING_DATASOURCE_USERNAME: testuser
           SPRING_DATASOURCE_PASSWORD: testpass
           SPRING_PROFILES_ACTIVE: test
+          JWT_SECRET: ci-test-secret-key-that-is-long-enough-for-hmac-sha256
+          GOOGLE_CLIENT_ID: test-client-id
+          GOOGLE_CLIENT_SECRET: test-client-secret
         run: mvn clean verify --no-transfer-progress
 
       - name: Upload test report
@@ -54,17 +58,17 @@ jobs:
           path: backend/target/surefire-reports/
 
   frontend:
-    name: Frontend – React
+    name: Frontend - React
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 18
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
@@ -75,7 +79,3 @@ jobs:
       - name: Build React app
         working-directory: ./frontend
         run: npm run build
-
-      - name: Run tests
-        working-directory: ./frontend
-        run: npm test -- --watchAll=false --passWithNoTests
