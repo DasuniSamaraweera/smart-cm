@@ -10,10 +10,10 @@ A full-stack campus management platform for facilities, bookings, incident ticke
 
 | Member | Module | Endpoints | Members
 |--------|--------|-----------|-----------|
-| Member 1 (Leader) | Module A – Facilities & Assets Catalogue | `/api/resources/**` | Pasindu
-| Member 2 | Module B – Booking Management | `/api/bookings/**` | Yoosuf
-| Member 3 | Module C – Maintenance & Incident Ticketing | `/api/tickets/**` | Ravindhu
-| Member 4 | Module D – Notifications + Module E – Auth/OAuth | `/api/notifications/**`, `/api/auth/**` | Charith
+| Member 1 (Leader) | Module A – Facilities & Assets Catalogue | `/api/resources/**` | Dasuni
+| Member 2 | Module B – Booking Management | `/api/bookings/**` | Ashi
+| Member 3 | Module C – Maintenance & Incident Ticketing | `/api/tickets/**` | Imalsha
+| Member 4 | Module D – Notifications + Module E – Auth/OAuth | `/api/notifications/**`, `/api/auth/**` | Ush
 
 ---
 
