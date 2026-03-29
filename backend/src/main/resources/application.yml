@@ -1,0 +1,53 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: smart-campus-api
+
+  # JPA / Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: validate       # use 'update' during early dev, 'validate' once schema is stable
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # OAuth2 – fill client-id and client-secret in application-dev.yml (never commit secrets)
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:placeholder}
+            client-secret: ${GOOGLE_CLIENT_SECRET:placeholder}
+            scope: openid, email, profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+  # File uploads (Module C – ticket attachments)
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 15MB   # up to 3 attachments × 5MB
+
+server:
+  port: 8080
+  max-http-request-header-size: 32KB
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# JWT config – override secret in dev/prod profiles
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: 86400000    # 24 hours
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+
+logging:
+  level:
+    com.smartcampus: INFO
+    org.springframework.security: WARN

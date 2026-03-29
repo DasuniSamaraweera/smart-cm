@@ -1,0 +1,35 @@
+# === SECRETS – never commit these ===
+backend/src/main/resources/application-dev.yml
+backend/src/main/resources/application-prod.yml
+.env
+*.env
+
+# === Java / Maven ===
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.DS_Store
+
+# === Node / React ===
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env
+frontend/.env.local
+
+# === IDE ===
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# === OS ===
+.DS_Store
+Thumbs.db
