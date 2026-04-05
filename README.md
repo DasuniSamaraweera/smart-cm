@@ -294,3 +294,10 @@ main
 | `frontend/src/App.jsx` | All routes |
 | `frontend/src/main.jsx` | App providers (Router, QueryClient, Auth, Toaster) |
 | `frontend/src/index.css` | Theme colors (CSS variables) |
+
+## Ticketing section
+
+---
+
+## Incident Ticketing
+
