@@ -120,8 +120,8 @@ smart-campus/
 
 ### 1. Clone and checkout your branch
 ```bash
-git clone https://github.com/PasinduSuraweera/it3030-paf-2026-smart-campus.git
-cd it3030-paf-2026-smart-campus
+git clone https://github.com/DasuniSamaraweera/smart-cm.git
+cd smart-cm
 git checkout feature/module-b-bookings    # replace with your branch
 git merge develop                         # get latest shared code
 ```
