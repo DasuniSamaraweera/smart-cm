@@ -7,6 +7,9 @@ import DashboardPage from '@/pages/DashboardPage'
 import ResourcesPage from '@/pages/resources/ResourcesPage'
 import BookingsPage from '@/pages/BookingsPage'
 import TicketsPage from '@/pages/TicketsPage'
+import MyTickets from '@/pages/tickets/MyTickets'
+import CreateTicket from '@/pages/tickets/CreateTicket'
+import TicketDetails from '@/pages/tickets/TicketDetails'
 import NotificationsPage from '@/pages/NotificationsPage'
 import UserManagementPage from '@/pages/UserManagementPage'
 
@@ -28,7 +31,10 @@ export default function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/resources" element={<ResourcesPage />} />
         <Route path="/bookings" element={<BookingsPage />} />
-        <Route path="/tickets" element={<TicketsPage />} />
+        <Route path="/tickets" element={<Navigate to="/tickets/my" replace />} />
+        <Route path="/tickets/my" element={<MyTickets />} />
+        <Route path="/tickets/create" element={<CreateTicket />} />
+        <Route path="/tickets/:id" element={<TicketDetails />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/admin/users" element={<UserManagementPage />} />
       </Route>
