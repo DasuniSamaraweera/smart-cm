@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/context/AuthContext'
 import ResourceFormDialog from './ResourceFormDialog'
+import FacilitiesAssistant from './FacilitiesAssistant'
 
 const typeIcons = {
   LECTURE_HALL: Presentation,
@@ -57,20 +58,34 @@ export default function ResourcesPage() {
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [minCapacity, setMinCapacity] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingResource, setEditingResource] = useState(null)
 
   const { data: resources = [], isLoading } = useQuery({
-    queryKey: ['resources', { search, type: typeFilter, status: statusFilter }],
+    queryKey: ['resources', { search, type: typeFilter, status: statusFilter, minCapacity }],
     queryFn: () =>
       resourceApi
         .getAll({
           search: search || undefined,
           type: typeFilter || undefined,
           status: statusFilter || undefined,
+          minCapacity: minCapacity ? Number(minCapacity) : undefined,
         })
         .then((res) => res.data),
   })
+
+  const applyAssistantFilters = (patch) => {
+    if (Object.prototype.hasOwnProperty.call(patch, 'type')) {
+      setTypeFilter(patch.type || '')
+    }
+    if (Object.prototype.hasOwnProperty.call(patch, 'status')) {
+      setStatusFilter(patch.status || '')
+    }
+    if (Object.prototype.hasOwnProperty.call(patch, 'minCapacity')) {
+      setMinCapacity(patch.minCapacity ? String(patch.minCapacity) : '')
+    }
+  }
 
   const deleteMutation = useMutation({
     mutationFn: (id) => resourceApi.delete(id),
@@ -153,9 +168,19 @@ export default function ResourcesPage() {
                 <SelectItem value="OUT_OF_SERVICE">Out of Service</SelectItem>
               </SelectContent>
             </Select>
+            <Input
+              type="number"
+              min="1"
+              value={minCapacity}
+              onChange={(e) => setMinCapacity(e.target.value)}
+              placeholder="Min capacity"
+              className="w-full sm:w-[140px]"
+            />
           </div>
         </CardContent>
       </Card>
+
+      <FacilitiesAssistant resources={resources} onApplyFilters={applyAssistantFilters} />
 
       {/* Resource grid */}
       {isLoading ? (
@@ -172,7 +197,7 @@ export default function ResourcesPage() {
             <Building2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-medium">No resources found</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              {search || typeFilter || statusFilter
+              {search || typeFilter || statusFilter || minCapacity
                 ? 'Try adjusting your filters.'
                 : isAdmin
                 ? 'Get started by adding your first resource.'
