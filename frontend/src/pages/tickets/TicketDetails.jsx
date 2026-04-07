@@ -3,31 +3,83 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { ticketApi } from '@/api/endpoints';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { authApi, ticketApi } from '@/api/endpoints';
 import { useAuth } from '@/context/AuthContext';
-import { ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import CommentSection from '@/components/tickets/CommentSection';
+
+const statusVariant = {
+  OPEN: 'default',
+  IN_PROGRESS: 'warning',
+  RESOLVED: 'secondary',
+  CLOSED: 'outline',
+  REJECTED: 'destructive',
+};
 
 export default function TicketDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, isAdmin } = useAuth();
+  const { isAdmin } = useAuth();
   const [ticket, setTicket] = useState(null);
+  const [assignees, setAssignees] = useState([]);
+  const [selectedAssignee, setSelectedAssignee] = useState('');
+  const [assigning, setAssigning] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchTicket();
   }, [id]);
 
+  useEffect(() => {
+    if (isAdmin) {
+      fetchAssignees();
+    }
+  }, [isAdmin]);
+
   const fetchTicket = async () => {
     try {
       const res = await ticketApi.getById(id);
       setTicket(res.data);
+      setSelectedAssignee(res.data.assignedTo?.id ? String(res.data.assignedTo.id) : '');
     } catch (err) {
       console.error("Failed to load ticket", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAssignees = async () => {
+    try {
+      const res = await authApi.getUsers();
+      setAssignees(res.data.filter((u) => u.role === 'TECHNICIAN' || u.role === 'ADMIN'));
+    } catch (err) {
+      console.error('Failed to load assignees', err);
+    }
+  };
+
+  const handleAssign = async () => {
+    if (!selectedAssignee) {
+      toast.error('Please select an assignee');
+      return;
+    }
+
+    try {
+      setAssigning(true);
+      await ticketApi.assign(ticket.id, { assigneeId: Number(selectedAssignee) });
+      toast.success('Ticket assignment updated');
+      await fetchTicket();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to assign ticket');
+    } finally {
+      setAssigning(false);
     }
   };
 
@@ -52,7 +104,7 @@ export default function TicketDetails() {
             <CardHeader>
               <div className="flex justify-between items-start">
                 <CardTitle>{ticket.title}</CardTitle>
-                <Badge variant={ticket.status === 'OPEN' ? 'default' : 'secondary'}>{ticket.status}</Badge>
+                <Badge variant={statusVariant[ticket.status] || 'secondary'}>{ticket.status}</Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -100,9 +152,29 @@ export default function TicketDetails() {
                 {ticket.assignedTo ? ticket.assignedTo.name : 'Unassigned'}
               </div>
               {isAdmin && (
-                <div className="mt-4">
-                  {/* Admin assignment UI placeholder */}
-                  <Button variant="outline" size="sm" className="w-full">Assign Technician</Button>
+                <div className="mt-4 space-y-2">
+                  <Select value={selectedAssignee} onValueChange={setSelectedAssignee}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select technician or admin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {assignees.map((assignee) => (
+                        <SelectItem key={assignee.id} value={String(assignee.id)}>
+                          {assignee.name} ({assignee.role})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={handleAssign}
+                    disabled={assigning || !selectedAssignee}
+                  >
+                    {assigning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Save Assignment
+                  </Button>
                 </div>
               )}
             </CardContent>

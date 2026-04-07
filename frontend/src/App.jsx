@@ -31,7 +31,7 @@ export default function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/resources" element={<ResourcesPage />} />
         <Route path="/bookings" element={<BookingsPage />} />
-        <Route path="/tickets" element={<Navigate to="/tickets/my" replace />} />
+        <Route path="/tickets" element={<TicketsPage />} />
         <Route path="/tickets/my" element={<MyTickets />} />
         <Route path="/tickets/create" element={<CreateTicket />} />
         <Route path="/tickets/:id" element={<TicketDetails />} />

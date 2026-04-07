@@ -1,19 +1,40 @@
 import { Building2, CalendarCheck, TicketCheck, TrendingUp } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/context/AuthContext'
-import { resourceApi } from '@/api/endpoints'
+import { resourceApi, ticketApi } from '@/api/endpoints'
+
+const statusVariant = {
+  OPEN: 'default',
+  IN_PROGRESS: 'warning',
+  RESOLVED: 'secondary',
+  CLOSED: 'outline',
+  REJECTED: 'destructive',
+}
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const isRegularUser = user?.role === 'USER'
 
   const { data: resources = [] } = useQuery({
     queryKey: ['resources'],
     queryFn: () => resourceApi.getAll({}).then((res) => res.data),
   })
 
+  const { data: tickets = [], isLoading: ticketsLoading } = useQuery({
+    queryKey: ['dashboard-tickets', user?.id, user?.role],
+    enabled: !!user,
+    queryFn: () => ticketApi.getAll(isRegularUser ? { my: true } : {}).then((res) => res.data),
+  })
+
   const activeResources = resources.filter((r) => r.status === 'ACTIVE').length
   const totalResources = resources.length
+  const openTickets = tickets.filter((ticket) => ticket.status === 'OPEN').length
+  const recentTickets = [...tickets]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5)
 
   const stats = [
     {
@@ -32,7 +53,7 @@ export default function DashboardPage() {
     },
     {
       title: 'Open Tickets',
-      value: 0,
+      value: openTickets,
       icon: TicketCheck,
       color: 'text-amber-600',
       bg: 'bg-amber-100',
@@ -92,7 +113,27 @@ export default function DashboardPage() {
             <CardTitle className="text-lg">Recent Tickets</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">No tickets yet. Report an issue from the Tickets page.</p>
+            {ticketsLoading ? (
+              <p className="text-sm text-muted-foreground">Loading tickets...</p>
+            ) : recentTickets.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No tickets yet. Report an issue from the Tickets page.</p>
+            ) : (
+              <div className="space-y-3">
+                {recentTickets.map((ticket) => (
+                  <div key={ticket.id} className="flex items-center justify-between gap-3 rounded-md border p-3">
+                    <div className="min-w-0">
+                      <Link to={`/tickets/${ticket.id}`} className="block truncate text-sm font-medium hover:underline">
+                        {ticket.title}
+                      </Link>
+                      <p className="text-xs text-muted-foreground">
+                        #{ticket.id} • {new Date(ticket.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <Badge variant={statusVariant[ticket.status] || 'secondary'}>{ticket.status}</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -1,6 +1,7 @@
 package com.smartcampus.service;
 
 import com.smartcampus.dto.*;
+import com.smartcampus.exception.BadRequestException;
 import com.smartcampus.exception.ForbiddenException;
 import com.smartcampus.exception.ResourceNotFoundException;
 import com.smartcampus.exception.UnauthorizedException;
@@ -104,13 +105,17 @@ public class TicketService {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
 
-        assertCanManage(ticket);
+        User user = assertCanManage(ticket);
+        validateStatusTransition(ticket.getStatus(), statusUpdate.getStatus(), user, statusUpdate.getRejectionReason());
         
         ticket.setStatus(statusUpdate.getStatus());
         if (statusUpdate.getStatus() == TicketStatus.REJECTED) {
-            ticket.setRejectionReason(statusUpdate.getRejectionReason());
+            ticket.setRejectionReason(statusUpdate.getRejectionReason().trim());
+            ticket.setResolutionNotes(null);
+        } else {
+            ticket.setRejectionReason(null);
+            ticket.setResolutionNotes(statusUpdate.getResolutionNotes());
         }
-        ticket.setResolutionNotes(statusUpdate.getResolutionNotes());
         
         return mapToResponse(ticketRepository.save(ticket));
     }
@@ -237,13 +242,51 @@ public class TicketService {
         throw new ForbiddenException("Not authorized to view this ticket");
     }
 
-    private void assertCanManage(Ticket ticket) {
+    private User assertCanManage(Ticket ticket) {
         User user = requireUser();
-        if (user.getRole() == UserRole.ADMIN) return;
+        if (user.getRole() == UserRole.ADMIN) return user;
         if (user.getRole() == UserRole.TECHNICIAN) {
-            if (ticket.getAssignedTo() != null && ticket.getAssignedTo().getId().equals(user.getId())) return;
+            if (ticket.getAssignedTo() != null && ticket.getAssignedTo().getId().equals(user.getId())) return user;
         }
         throw new ForbiddenException("Not authorized to manage this ticket");
+    }
+
+    private void validateStatusTransition(TicketStatus currentStatus,
+                                          TicketStatus requestedStatus,
+                                          User actor,
+                                          String rejectionReason) {
+        if (currentStatus == requestedStatus) {
+            if (requestedStatus == TicketStatus.REJECTED && isBlank(rejectionReason)) {
+                throw new BadRequestException("Rejection reason is required when status is REJECTED");
+            }
+            return;
+        }
+
+        if (requestedStatus == TicketStatus.REJECTED) {
+            if (actor.getRole() != UserRole.ADMIN) {
+                throw new ForbiddenException("Only admins can reject tickets");
+            }
+            if (isBlank(rejectionReason)) {
+                throw new BadRequestException("Rejection reason is required when status is REJECTED");
+            }
+            if (currentStatus == TicketStatus.CLOSED || currentStatus == TicketStatus.REJECTED) {
+                throw new BadRequestException("Cannot reject a ticket that is already " + currentStatus);
+            }
+            return;
+        }
+
+        boolean validWorkflowTransition =
+                (currentStatus == TicketStatus.OPEN && requestedStatus == TicketStatus.IN_PROGRESS)
+                        || (currentStatus == TicketStatus.IN_PROGRESS && requestedStatus == TicketStatus.RESOLVED)
+                        || (currentStatus == TicketStatus.RESOLVED && requestedStatus == TicketStatus.CLOSED);
+
+        if (!validWorkflowTransition) {
+            throw new BadRequestException("Invalid ticket status transition from " + currentStatus + " to " + requestedStatus);
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
     private void saveAttachments(Ticket ticket, List<MultipartFile> files) {
