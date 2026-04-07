@@ -6,7 +6,6 @@ import { toast } from 'sonner'
 import {
   Plus,
   Search,
-  Filter,
   Building2,
   MapPin,
   Users,
@@ -54,33 +53,38 @@ const typeLabels = {
   EQUIPMENT: 'Equipment',
 }
 
+const resourceTypes = ['LECTURE_HALL', 'MEETING_ROOM', 'LAB', 'EQUIPMENT']
+
 export default function ResourcesPage() {
   const { isAdmin } = useAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
-  const [typeFilter, setTypeFilter] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [minCapacity, setMinCapacity] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingResource, setEditingResource] = useState(null)
 
-  const { data: resources = [], isLoading } = useQuery({
-    queryKey: ['resources', { search, type: typeFilter, status: statusFilter, minCapacity }],
+  const { data: allResources = [], isLoading } = useQuery({
+    queryKey: ['resources', { search, status: statusFilter, minCapacity }],
     queryFn: () =>
       resourceApi
         .getAll({
           search: search || undefined,
-          type: typeFilter || undefined,
           status: statusFilter || undefined,
           minCapacity: minCapacity ? Number(minCapacity) : undefined,
         })
         .then((res) => res.data),
   })
 
+  const resources = selectedCategory
+    ? allResources.filter((resource) => resource.type === selectedCategory)
+    : allResources
+
   const applyAssistantFilters = (patch) => {
     if (Object.prototype.hasOwnProperty.call(patch, 'type')) {
-      setTypeFilter(patch.type || '')
+      setSelectedCategory(patch.type || '')
     }
     if (Object.prototype.hasOwnProperty.call(patch, 'status')) {
       setStatusFilter(patch.status || '')
@@ -123,6 +127,11 @@ export default function ResourcesPage() {
     navigate(`/bookings?${query.toString()}`)
   }
 
+  const resourceCounts = resourceTypes.reduce((acc, type) => {
+    acc[type] = allResources.filter((resource) => resource.type === type).length
+    return acc
+  }, {})
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -154,21 +163,6 @@ export default function ResourcesPage() {
                 className="pl-9"
               />
             </div>
-            <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v === 'ALL' ? '' : v)}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  <SelectValue placeholder="All Types" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Types</SelectItem>
-                <SelectItem value="LECTURE_HALL">Lecture Hall</SelectItem>
-                <SelectItem value="LAB">Lab</SelectItem>
-                <SelectItem value="MEETING_ROOM">Meeting Room</SelectItem>
-                <SelectItem value="EQUIPMENT">Equipment</SelectItem>
-              </SelectContent>
-            </Select>
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v === 'ALL' ? '' : v)}>
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="All Statuses" />
@@ -191,6 +185,46 @@ export default function ResourcesPage() {
         </CardContent>
       </Card>
 
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {resourceTypes.map((type) => {
+          const Icon = typeIcons[type]
+          const isSelected = selectedCategory === type
+
+          return (
+            <Card
+              key={type}
+              className={`cursor-pointer transition-all hover:shadow-md ${
+                isSelected ? 'ring-2 ring-primary border-primary' : ''
+              }`}
+              onClick={() => setSelectedCategory(type)}
+            >
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">{typeLabels[type]}</p>
+                    <p className="text-2xl font-semibold mt-1">{resourceCounts[type] || 0}</p>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <Icon className="h-5 w-5 text-primary" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
+
+      {selectedCategory && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Showing {typeLabels[selectedCategory]} resources only
+          </p>
+          <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedCategory('')}>
+            Show all resources
+          </Button>
+        </div>
+      )}
+
       <FacilitiesAssistant resources={resources} onApplyFilters={applyAssistantFilters} />
 
       {/* Resource grid */}
@@ -208,7 +242,7 @@ export default function ResourcesPage() {
             <Building2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-medium">No resources found</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              {search || typeFilter || statusFilter || minCapacity
+              {search || selectedCategory || statusFilter || minCapacity
                 ? 'Try adjusting your filters.'
                 : isAdmin
                 ? 'Get started by adding your first resource.'
