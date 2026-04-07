@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { resourceApi } from '@/api/endpoints'
 import { toast } from 'sonner'
 import {
@@ -16,6 +17,7 @@ import {
   FlaskConical,
   Presentation,
   Camera,
+  CalendarPlus,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -54,6 +56,7 @@ const typeLabels = {
 
 export default function ResourcesPage() {
   const { isAdmin } = useAuth()
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
@@ -110,6 +113,14 @@ export default function ResourcesPage() {
     if (window.confirm('Are you sure you want to delete this resource?')) {
       deleteMutation.mutate(id)
     }
+  }
+
+  const handleBookNow = (resource) => {
+    const query = new URLSearchParams({
+      resourceId: String(resource.id),
+      resourceName: resource.name,
+    })
+    navigate(`/bookings?${query.toString()}`)
   }
 
   return (
@@ -281,6 +292,18 @@ export default function ResourcesPage() {
                       </span>
                     )}
                   </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-3 w-full gap-2"
+                    onClick={() => handleBookNow(resource)}
+                    disabled={resource.status !== 'ACTIVE'}
+                  >
+                    <CalendarPlus className="h-4 w-4" />
+                    Book Now
+                  </Button>
                 </CardContent>
               </Card>
             )
