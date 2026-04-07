@@ -9,6 +9,7 @@ import com.smartcampus.model.User;
 import com.smartcampus.model.enums.TicketStatus;
 import com.smartcampus.model.enums.UserRole;
 import com.smartcampus.repository.ResourceRepository;
+import com.smartcampus.repository.TicketAttachmentRepository;
 import com.smartcampus.repository.TicketCommentRepository;
 import com.smartcampus.repository.TicketRepository;
 import com.smartcampus.repository.UserRepository;
@@ -36,6 +37,9 @@ class TicketServiceStatusWorkflowTest {
 
     @Mock
     private TicketCommentRepository commentRepository;
+
+    @Mock
+    private TicketAttachmentRepository ticketAttachmentRepository;
 
     @Mock
     private UserRepository userRepository;
