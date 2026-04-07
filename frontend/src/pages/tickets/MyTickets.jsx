@@ -19,7 +19,7 @@ export default function MyTickets() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    ticketApi.getAll({ my: true }).then((res) => {
+    ticketApi.getAll({ my: true, page: 0, size: 20 }).then((res) => {
       setTickets(res.data);
     }).catch(err => {
       console.error("Failed to fetch tickets", err);

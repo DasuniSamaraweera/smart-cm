@@ -27,21 +27,25 @@ public class TicketController {
     }
 
     @GetMapping("/my")
-    public ResponseEntity<List<TicketResponse>> getMyTickets() {
-        return ResponseEntity.ok(ticketService.getMyTickets());
+    public ResponseEntity<List<TicketSummaryResponse>> getMyTickets(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size) {
+        return ResponseEntity.ok(ticketService.getMyTickets(page, size));
     }
 
     @GetMapping
-    public ResponseEntity<List<TicketResponse>> getTickets(
+    public ResponseEntity<List<TicketSummaryResponse>> getTickets(
             @RequestParam(value = "my", required = false) Boolean my,
             @RequestParam(value = "status", required = false) com.smartcampus.model.enums.TicketStatus status,
             @RequestParam(value = "priority", required = false) com.smartcampus.model.enums.TicketPriority priority,
             @RequestParam(value = "reporterId", required = false) Long reporterId,
-            @RequestParam(value = "assignedToId", required = false) Long assignedToId) {
+            @RequestParam(value = "assignedToId", required = false) Long assignedToId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size) {
         if (Boolean.TRUE.equals(my)) {
-            return ResponseEntity.ok(ticketService.getMyTickets());
+            return ResponseEntity.ok(ticketService.getMyTickets(page, size));
         }
-        return ResponseEntity.ok(ticketService.getTickets(status, priority, reporterId, assignedToId));
+        return ResponseEntity.ok(ticketService.getTickets(status, priority, reporterId, assignedToId, page, size));
     }
 
     @GetMapping("/{id}")

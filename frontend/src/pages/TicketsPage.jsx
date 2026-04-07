@@ -25,7 +25,10 @@ export default function TicketsPage() {
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ['tickets', user?.id, user?.role],
     enabled: !!user,
-    queryFn: () => ticketApi.getAll(isRegularUser ? { my: true } : {}).then((res) => res.data),
+    queryFn: () =>
+      ticketApi
+        .getAll(isRegularUser ? { my: true, page: 0, size: 20 } : { page: 0, size: 20 })
+        .then((res) => res.data),
   })
 
   const sortedTickets = useMemo(

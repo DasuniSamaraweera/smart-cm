@@ -14,8 +14,12 @@ import com.smartcampus.repository.TicketAttachmentRepository;
 import com.smartcampus.repository.TicketCommentRepository;
 import com.smartcampus.repository.TicketRepository;
 import com.smartcampus.repository.UserRepository;
+import com.smartcampus.repository.projection.TicketAttachmentMetadataProjection;
 import com.smartcampus.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -34,6 +38,8 @@ public class TicketService {
 
     private static final int MAX_ATTACHMENTS_PER_TICKET = 3;
     private static final long MAX_ATTACHMENT_SIZE_BYTES = 5L * 1024 * 1024;
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int MAX_PAGE_SIZE = 100;
     private static final Set<String> ALLOWED_IMAGE_CONTENT_TYPES = Set.of(
             "image/jpeg",
             "image/png",
@@ -76,32 +82,37 @@ public class TicketService {
     }
 
     @Transactional(readOnly = true)
-    public List<TicketResponse> getMyTickets() {
+        public List<TicketSummaryResponse> getMyTickets(int page, int size) {
         Long userId = requireUserId();
-        return ticketRepository.findByReporterId(userId).stream()
-                .map(this::mapToResponse)
+        Pageable pageable = buildPageable(page, size);
+
+        return ticketRepository.findByReporterId(userId, pageable).stream()
+            .map(this::mapToSummaryResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<TicketResponse> getTickets(TicketStatus status,
-                                          TicketPriority priority,
-                                          Long reporterId,
-                                          Long assignedToId) {
+        public List<TicketSummaryResponse> getTickets(TicketStatus status,
+                              TicketPriority priority,
+                              Long reporterId,
+                              Long assignedToId,
+                              int page,
+                              int size) {
         User user = requireUser();
+        Pageable pageable = buildPageable(page, size);
 
         if (user.getRole() == UserRole.ADMIN) {
-            return ticketRepository.findWithFilters(status, priority, reporterId, assignedToId)
+            return ticketRepository.findWithFilters(status, priority, reporterId, assignedToId, pageable)
                     .stream()
-                    .map(this::mapToResponse)
+                .map(this::mapToSummaryResponse)
                     .collect(Collectors.toList());
         }
 
         if (user.getRole() == UserRole.TECHNICIAN) {
             // Technicians can only view tickets assigned to them.
-            return ticketRepository.findWithFilters(status, priority, null, user.getId())
+            return ticketRepository.findWithFilters(status, priority, null, user.getId(), pageable)
                     .stream()
-                    .map(this::mapToResponse)
+                .map(this::mapToSummaryResponse)
                     .collect(Collectors.toList());
         }
 
@@ -113,7 +124,18 @@ public class TicketService {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
         assertCanView(ticket);
-        return mapToResponse(ticket);
+
+        List<AttachmentResponse> attachmentResponses = ticketAttachmentRepository.findMetadataByTicketId(ticketId)
+            .stream()
+            .map(this::mapAttachmentMetadataToResponse)
+            .collect(Collectors.toList());
+
+        List<CommentResponse> commentResponses = commentRepository.findByTicketIdOrderByCreatedAtAsc(ticketId)
+            .stream()
+            .map(this::mapCommentToResponse)
+            .collect(Collectors.toList());
+
+        return mapToDetailResponse(ticket, attachmentResponses, commentResponses);
     }
 
     @Transactional
@@ -321,6 +343,23 @@ public class TicketService {
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private Pageable buildPageable(int page, int size) {
+        if (page < 0) {
+            throw new BadRequestException("Page must be greater than or equal to 0");
+        }
+
+        int resolvedSize;
+        if (size <= 0) {
+            resolvedSize = DEFAULT_PAGE_SIZE;
+        } else if (size > MAX_PAGE_SIZE) {
+            resolvedSize = MAX_PAGE_SIZE;
+        } else {
+            resolvedSize = size;
+        }
+
+        return PageRequest.of(page, resolvedSize, Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
     private void saveAttachments(Ticket ticket, List<MultipartFile> files, long existingAttachmentCount) {
@@ -543,6 +582,34 @@ public class TicketService {
                 .build();
     }
 
+    private AttachmentResponse mapAttachmentMetadataToResponse(TicketAttachmentMetadataProjection attachment) {
+        return AttachmentResponse.builder()
+                .id(attachment.getId())
+                .fileName(attachment.getFileName())
+                .fileType(attachment.getFileType())
+                .uploadedAt(attachment.getUploadedAt())
+                .build();
+    }
+
+    private TicketSummaryResponse mapToSummaryResponse(Ticket ticket) {
+        return TicketSummaryResponse.builder()
+                .id(ticket.getId())
+                .title(ticket.getTitle())
+                .description(ticket.getDescription())
+                .category(ticket.getCategory())
+                .priority(ticket.getPriority())
+                .status(ticket.getStatus())
+                .reporter(mapUserToDTO(ticket.getReporter()))
+                .assignedTo(mapUserToDTO(ticket.getAssignedTo()))
+                .contactEmail(ticket.getContactEmail())
+                .contactPhone(ticket.getContactPhone())
+                .resolutionNotes(ticket.getResolutionNotes())
+                .rejectionReason(ticket.getRejectionReason())
+                .createdAt(ticket.getCreatedAt())
+                .updatedAt(ticket.getUpdatedAt())
+                .build();
+    }
+
     private TicketResponse mapToResponse(Ticket ticket) {
         return TicketResponse.builder()
                 .id(ticket.getId())
@@ -559,6 +626,29 @@ public class TicketService {
                 .rejectionReason(ticket.getRejectionReason())
                 .attachments(ticket.getAttachments() != null ? ticket.getAttachments().stream().map(this::mapAttachmentToResponse).collect(Collectors.toList()) : null)
                 .comments(ticket.getComments() != null ? ticket.getComments().stream().map(this::mapCommentToResponse).collect(Collectors.toList()) : null)
+                .createdAt(ticket.getCreatedAt())
+                .updatedAt(ticket.getUpdatedAt())
+                .build();
+    }
+
+    private TicketResponse mapToDetailResponse(Ticket ticket,
+                                               List<AttachmentResponse> attachments,
+                                               List<CommentResponse> comments) {
+        return TicketResponse.builder()
+                .id(ticket.getId())
+                .title(ticket.getTitle())
+                .description(ticket.getDescription())
+                .category(ticket.getCategory())
+                .priority(ticket.getPriority())
+                .status(ticket.getStatus())
+                .reporter(mapUserToDTO(ticket.getReporter()))
+                .assignedTo(mapUserToDTO(ticket.getAssignedTo()))
+                .contactEmail(ticket.getContactEmail())
+                .contactPhone(ticket.getContactPhone())
+                .resolutionNotes(ticket.getResolutionNotes())
+                .rejectionReason(ticket.getRejectionReason())
+                .attachments(attachments)
+                .comments(comments)
                 .createdAt(ticket.getCreatedAt())
                 .updatedAt(ticket.getUpdatedAt())
                 .build();

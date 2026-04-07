@@ -26,7 +26,10 @@ export default function DashboardPage() {
   const { data: tickets = [], isLoading: ticketsLoading } = useQuery({
     queryKey: ['dashboard-tickets', user?.id, user?.role],
     enabled: !!user,
-    queryFn: () => ticketApi.getAll(isRegularUser ? { my: true } : {}).then((res) => res.data),
+    queryFn: () =>
+      ticketApi
+        .getAll(isRegularUser ? { my: true, page: 0, size: 5 } : { page: 0, size: 5 })
+        .then((res) => res.data),
   })
 
   const activeResources = resources.filter((r) => r.status === 'ACTIVE').length
