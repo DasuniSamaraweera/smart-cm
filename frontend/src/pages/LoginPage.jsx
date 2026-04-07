@@ -1,11 +1,40 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { GraduationCap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { authApi } from '@/api/endpoints'
 import { API_BASE_URL_RAW } from '@/api/axios'
+import { useAuth } from '@/context/AuthContext'
+import { toast } from 'sonner'
 
 export default function LoginPage() {
+  const navigate = useNavigate()
+  const { login } = useAuth()
+  const [devSigningIn, setDevSigningIn] = useState(false)
+
   const handleGoogleSignIn = () => {
     window.location.href = `${API_BASE_URL_RAW}/login/oauth2/authorization/google`
+  }
+
+  const handleDevAdminSignIn = async () => {
+    try {
+      setDevSigningIn(true)
+      const res = await authApi.devLogin()
+      const token = res?.data?.token
+
+      if (!token) {
+        toast.error('Dev login did not return a token')
+        return
+      }
+
+      login(token)
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to sign in as DEV_Loggin')
+    } finally {
+      setDevSigningIn(false)
+    }
   }
 
   return (
@@ -49,6 +78,18 @@ export default function LoginPage() {
               </svg>
               Continue with Google
             </Button>
+
+            {import.meta.env.DEV && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-11 mt-3"
+                onClick={handleDevAdminSignIn}
+                disabled={devSigningIn}
+              >
+                {devSigningIn ? 'Signing in...' : 'Continue as DEV_Loggin (Admin)'}
+              </Button>
+            )}
 
             <p className="text-xs text-center text-muted-foreground mt-6">
               By signing in, you agree to the campus usage policies.

@@ -3,6 +3,8 @@ package com.smartcampus.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -27,7 +29,7 @@ public class TicketAttachment {
     @Column(nullable = false)
     private String fileType;
 
-    @Lob
+    @JdbcTypeCode(SqlTypes.BINARY)
     @Column(nullable = false, columnDefinition = "BYTEA")
     private byte[] fileData;
 
