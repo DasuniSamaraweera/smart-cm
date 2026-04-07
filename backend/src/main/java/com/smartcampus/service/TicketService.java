@@ -107,6 +107,7 @@ public class TicketService {
 
         User user = assertCanManage(ticket);
         validateStatusTransition(ticket.getStatus(), statusUpdate.getStatus(), user, statusUpdate.getRejectionReason());
+        String incomingResolutionNotes = statusUpdate.getResolutionNotes();
         
         ticket.setStatus(statusUpdate.getStatus());
         if (statusUpdate.getStatus() == TicketStatus.REJECTED) {
@@ -114,7 +115,9 @@ public class TicketService {
             ticket.setResolutionNotes(null);
         } else {
             ticket.setRejectionReason(null);
-            ticket.setResolutionNotes(statusUpdate.getResolutionNotes());
+            if (incomingResolutionNotes != null) {
+                ticket.setResolutionNotes(incomingResolutionNotes);
+            }
         }
         
         return mapToResponse(ticketRepository.save(ticket));
@@ -127,7 +130,17 @@ public class TicketService {
         User assignee = userRepository.findById(assigneeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Assignee not found"));
 
+        if (assignee.getRole() != UserRole.TECHNICIAN) {
+            throw new BadRequestException("Ticket can only be assigned to a technician");
+        }
+        if (ticket.getStatus() == TicketStatus.CLOSED || ticket.getStatus() == TicketStatus.REJECTED) {
+            throw new BadRequestException("Cannot assign a ticket that is already " + ticket.getStatus());
+        }
+
         ticket.setAssignedTo(assignee);
+        if (ticket.getStatus() == TicketStatus.OPEN) {
+            ticket.setStatus(TicketStatus.IN_PROGRESS);
+        }
         return mapToResponse(ticketRepository.save(ticket));
     }
 
@@ -273,6 +286,10 @@ public class TicketService {
                 throw new BadRequestException("Cannot reject a ticket that is already " + currentStatus);
             }
             return;
+        }
+
+        if (requestedStatus == TicketStatus.CLOSED && actor.getRole() != UserRole.ADMIN) {
+            throw new ForbiddenException("Only admins can close tickets");
         }
 
         boolean validWorkflowTransition =

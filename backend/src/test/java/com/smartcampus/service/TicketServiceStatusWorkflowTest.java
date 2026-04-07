@@ -140,6 +140,51 @@ class TicketServiceStatusWorkflowTest {
         verify(ticketRepository, never()).save(any(Ticket.class));
     }
 
+    @Test
+    void shouldSetInProgressWhenAssignedFromOpen() {
+        Ticket ticket = ticketWithStatus(TicketStatus.OPEN);
+        User technician = user(10L, UserRole.TECHNICIAN);
+
+        when(ticketRepository.findById(105L)).thenReturn(Optional.of(ticket));
+        when(userRepository.findById(10L)).thenReturn(Optional.of(technician));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TicketResponse response = ticketService.assignTicket(105L, 10L);
+
+        assertEquals(TicketStatus.IN_PROGRESS, response.getStatus());
+        assertEquals(10L, response.getAssignedTo().getId());
+        verify(ticketRepository).save(ticket);
+    }
+
+    @Test
+    void shouldRejectAssignmentToNonTechnician() {
+        Ticket ticket = ticketWithStatus(TicketStatus.OPEN);
+        User admin = user(11L, UserRole.ADMIN);
+
+        when(ticketRepository.findById(106L)).thenReturn(Optional.of(ticket));
+        when(userRepository.findById(11L)).thenReturn(Optional.of(admin));
+
+        assertThrows(BadRequestException.class, () -> ticketService.assignTicket(106L, 11L));
+        verify(ticketRepository, never()).save(any(Ticket.class));
+    }
+
+    @Test
+    void shouldForbidTechnicianFromClosingTicket() {
+        User technician = user(12L, UserRole.TECHNICIAN);
+        Ticket ticket = ticketWithStatus(TicketStatus.RESOLVED);
+        ticket.setAssignedTo(technician);
+
+        when(ticketRepository.findById(107L)).thenReturn(Optional.of(ticket));
+        when(currentUser.get()).thenReturn(technician);
+
+        TicketStatusUpdate request = TicketStatusUpdate.builder()
+                .status(TicketStatus.CLOSED)
+                .build();
+
+        assertThrows(ForbiddenException.class, () -> ticketService.updateStatus(107L, request));
+        verify(ticketRepository, never()).save(any(Ticket.class));
+    }
+
     private Ticket ticketWithStatus(TicketStatus status) {
         return Ticket.builder()
                 .id(500L)

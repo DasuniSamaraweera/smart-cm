@@ -46,6 +46,8 @@ app:
     secret: ${JWT_SECRET}
     expiration-ms: 86400000    # 24 hours
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  dev-login:
+    enabled: false
 
 logging:
   level:

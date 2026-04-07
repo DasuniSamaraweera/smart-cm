@@ -6,6 +6,14 @@ import { ticketApi } from '@/api/endpoints';
 import { useNavigate } from 'react-router-dom';
 import { PlusCircle } from 'lucide-react';
 
+const statusVariant = {
+  OPEN: 'default',
+  IN_PROGRESS: 'warning',
+  RESOLVED: 'secondary',
+  CLOSED: 'outline',
+  REJECTED: 'destructive',
+};
+
 export default function MyTickets() {
   const [tickets, setTickets] = useState([]);
   const navigate = useNavigate();
@@ -36,13 +44,19 @@ export default function MyTickets() {
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
                 <CardTitle className="text-base">{ticket.title}</CardTitle>
-                <Badge variant={ticket.status === 'OPEN' ? 'default' : ticket.status === 'CLOSED' ? 'outline' : 'secondary'}>
+                <Badge variant={statusVariant[ticket.status] || 'secondary'}>
                   {ticket.status}
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="pt-0 flex flex-col gap-2">
               <p className="text-sm text-muted-foreground line-clamp-2">{ticket.description}</p>
+              {ticket.status === 'REJECTED' && ticket.rejectionReason && (
+                <p className="text-xs text-rose-700 line-clamp-2">Reason: {ticket.rejectionReason}</p>
+              )}
+              {ticket.status !== 'REJECTED' && ticket.resolutionNotes && (
+                <p className="text-xs text-emerald-700 line-clamp-2">Resolution: {ticket.resolutionNotes}</p>
+              )}
               <div className="text-xs text-muted-foreground mt-2">
                 Priority: {ticket.priority} | Category: {ticket.category}
               </div>
