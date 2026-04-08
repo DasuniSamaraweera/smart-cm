@@ -82,12 +82,21 @@ public class TicketService {
     }
 
     @Transactional(readOnly = true)
-        public List<TicketSummaryResponse> getMyTickets(int page, int size) {
+    public List<TicketSummaryResponse> getMyTickets(int page, int size) {
+        return getMyTickets(null, null, page, size);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TicketSummaryResponse> getMyTickets(TicketStatus status,
+                                                    TicketPriority priority,
+                                                    int page,
+                                                    int size) {
         Long userId = requireUserId();
         Pageable pageable = buildPageable(page, size);
 
-        return ticketRepository.findByReporterId(userId, pageable).stream()
-            .map(this::mapToSummaryResponse)
+        return ticketRepository.findWithFilters(status, priority, userId, null, pageable)
+                .stream()
+                .map(this::mapToSummaryResponse)
                 .collect(Collectors.toList());
     }
 

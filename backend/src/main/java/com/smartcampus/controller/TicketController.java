@@ -28,9 +28,11 @@ public class TicketController {
 
     @GetMapping("/my")
     public ResponseEntity<List<TicketSummaryResponse>> getMyTickets(
+            @RequestParam(value = "status", required = false) com.smartcampus.model.enums.TicketStatus status,
+            @RequestParam(value = "priority", required = false) com.smartcampus.model.enums.TicketPriority priority,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "20") int size) {
-        return ResponseEntity.ok(ticketService.getMyTickets(page, size));
+        return ResponseEntity.ok(ticketService.getMyTickets(status, priority, page, size));
     }
 
     @GetMapping
@@ -43,7 +45,7 @@ public class TicketController {
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "20") int size) {
         if (Boolean.TRUE.equals(my)) {
-            return ResponseEntity.ok(ticketService.getMyTickets(page, size));
+            return ResponseEntity.ok(ticketService.getMyTickets(status, priority, page, size));
         }
         return ResponseEntity.ok(ticketService.getTickets(status, priority, reporterId, assignedToId, page, size));
     }

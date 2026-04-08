@@ -1,10 +1,11 @@
-import { useMemo } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { PlusCircle, TicketCheck } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ticketApi } from '@/api/endpoints'
 import { useAuth } from '@/context/AuthContext'
 
@@ -16,25 +17,41 @@ const statusVariant = {
   REJECTED: 'destructive',
 }
 
+const statusOptions = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'REJECTED']
+const priorityOptions = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
+
 export default function TicketsPage() {
   const navigate = useNavigate()
   const { user, isAdmin } = useAuth()
   const isRegularUser = user?.role === 'USER'
   const isTechnician = user?.role === 'TECHNICIAN'
+  const [statusFilter, setStatusFilter] = useState('ALL')
+  const [priorityFilter, setPriorityFilter] = useState('ALL')
 
   const { data: tickets = [], isLoading } = useQuery({
-    queryKey: ['tickets', user?.id, user?.role],
+    queryKey: ['tickets', user?.id, user?.role, statusFilter, priorityFilter],
     enabled: !!user,
-    queryFn: () =>
-      ticketApi
-        .getAll(isRegularUser ? { my: true, page: 0, size: 20 } : { page: 0, size: 20 })
-        .then((res) => res.data),
-  })
+    queryFn: () => {
+      const params = {
+        page: 0,
+        size: 20,
+      }
 
-  const sortedTickets = useMemo(
-    () => [...tickets].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
-    [tickets],
-  )
+      if (isRegularUser) {
+        params.my = true
+      }
+
+      if (statusFilter !== 'ALL') {
+        params.status = statusFilter
+      }
+
+      if (priorityFilter !== 'ALL') {
+        params.priority = priorityFilter
+      }
+
+      return ticketApi.getAll(params).then((res) => res.data)
+    },
+  })
 
   const title = isAdmin ? 'All Tickets' : isTechnician ? 'Assigned Tickets' : 'My Tickets'
   const subtitle = isAdmin
@@ -57,6 +74,58 @@ export default function TicketsPage() {
         )}
       </div>
 
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="w-full sm:w-52">
+              <p className="mb-1 text-xs text-muted-foreground">Status</p>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Statuses</SelectItem>
+                  {statusOptions.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="w-full sm:w-52">
+              <p className="mb-1 text-xs text-muted-foreground">Priority</p>
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All priorities" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Priorities</SelectItem>
+                  {priorityOptions.map((priority) => (
+                    <SelectItem key={priority} value={priority}>
+                      {priority}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setStatusFilter('ALL')
+                setPriorityFilter('ALL')
+              }}
+              disabled={statusFilter === 'ALL' && priorityFilter === 'ALL'}
+            >
+              Clear Filters
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(3)].map((_, i) => (
@@ -67,7 +136,7 @@ export default function TicketsPage() {
             </Card>
           ))}
         </div>
-      ) : sortedTickets.length === 0 ? (
+      ) : tickets.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-20">
             <TicketCheck className="mb-4 h-12 w-12 text-muted-foreground/50" />
@@ -81,7 +150,7 @@ export default function TicketsPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {sortedTickets.map((ticket) => (
+          {tickets.map((ticket) => (
             <Card
               key={ticket.id}
               className="cursor-pointer transition-shadow hover:shadow-sm"
