@@ -578,6 +578,26 @@ public class TicketService {
                 && data[11] == 'P';
     }
 
+    private ResourceResponse mapResourceToResponse(Resource resource) {
+        if (resource == null) {
+            return null;
+        }
+
+        return ResourceResponse.builder()
+                .id(resource.getId())
+                .name(resource.getName())
+                .type(resource.getType())
+                .capacity(resource.getCapacity())
+                .location(resource.getLocation())
+                .description(resource.getDescription())
+                .availabilityStart(resource.getAvailabilityStart())
+                .availabilityEnd(resource.getAvailabilityEnd())
+                .status(resource.getStatus())
+                .createdAt(resource.getCreatedAt())
+                .updatedAt(resource.getUpdatedAt())
+                .build();
+    }
+
     private UserDTO mapUserToDTO(User user) {
         if (user == null) return null;
         return UserDTO.builder()
@@ -645,6 +665,7 @@ public class TicketService {
                 .category(ticket.getCategory())
                 .priority(ticket.getPriority())
                 .status(ticket.getStatus())
+                .resource(mapResourceToResponse(ticket.getResource()))
                 .reporter(mapUserToDTO(ticket.getReporter()))
                 .assignedTo(mapUserToDTO(ticket.getAssignedTo()))
                 .contactEmail(ticket.getContactEmail())
@@ -668,6 +689,7 @@ public class TicketService {
                 .category(ticket.getCategory())
                 .priority(ticket.getPriority())
                 .status(ticket.getStatus())
+                .resource(mapResourceToResponse(ticket.getResource()))
                 .reporter(mapUserToDTO(ticket.getReporter()))
                 .assignedTo(mapUserToDTO(ticket.getAssignedTo()))
                 .contactEmail(ticket.getContactEmail())

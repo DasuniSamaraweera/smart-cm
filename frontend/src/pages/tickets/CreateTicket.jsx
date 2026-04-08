@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ticketApi } from '@/api/endpoints';
+import { resourceApi, ticketApi } from '@/api/endpoints';
 import { toast } from 'sonner';
 
 const MAX_ATTACHMENTS = 3;
@@ -44,6 +45,7 @@ export default function CreateTicket() {
     description: '', 
     category: '', 
     priority: 'MEDIUM',
+    resourceId: '',
     contactEmail: '',
     contactPhone: ''
   });
@@ -51,6 +53,15 @@ export default function CreateTicket() {
   const [attachmentError, setAttachmentError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const {
+    data: resources = [],
+    isLoading: resourcesLoading,
+    isError: resourcesError,
+  } = useQuery({
+    queryKey: ['ticket-create-resources'],
+    queryFn: () => resourceApi.getAll().then((res) => res.data),
+  });
 
   const handleAttachmentChange = (e) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -86,11 +97,28 @@ export default function CreateTicket() {
       return;
     }
 
+    const parsedResourceId = formData.resourceId ? Number(formData.resourceId) : null;
+    if (
+      formData.resourceId
+      && (!Number.isInteger(parsedResourceId) || parsedResourceId <= 0)
+    ) {
+      toast.error('Please select a valid resource');
+      return;
+    }
+
     setLoading(true);
     
     try {
+      const payload = {
+        ...formData,
+        resourceId: parsedResourceId,
+        category: formData.category || null,
+        contactEmail: formData.contactEmail || null,
+        contactPhone: formData.contactPhone || null,
+      };
+
       const data = new FormData();
-      data.append('ticket', new Blob([JSON.stringify(formData)], { type: 'application/json' }));
+      data.append('ticket', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
       attachments.forEach((file) => data.append('files', file));
       
       await ticketApi.create(data);
@@ -155,6 +183,33 @@ export default function CreateTicket() {
                   <SelectItem value="CRITICAL">Critical</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="resourceId">Related Resource (Optional)</Label>
+              <Select
+                value={formData.resourceId || 'NONE'}
+                onValueChange={(val) => setFormData({
+                  ...formData,
+                  resourceId: val === 'NONE' ? '' : val,
+                })}
+                disabled={resourcesLoading}
+              >
+                <SelectTrigger id="resourceId">
+                  <SelectValue placeholder="Select a resource" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="NONE">No related resource</SelectItem>
+                  {resources.map((resource) => (
+                    <SelectItem key={resource.id} value={String(resource.id)}>
+                      {resource.id} - {resource.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {resourcesError && (
+                <p className="text-sm text-red-600">Unable to load resources. You can still submit without selecting one.</p>
+              )}
             </div>
             
             <div className="space-y-2">
