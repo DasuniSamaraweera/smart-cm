@@ -163,6 +163,11 @@ public class TicketService {
 
     @Transactional
     public TicketResponse assignTicket(Long id, Long assigneeId) {
+        User actor = requireUser();
+        if (actor.getRole() != UserRole.ADMIN) {
+            throw new ForbiddenException("Only admins can assign tickets");
+        }
+
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
         User assignee = userRepository.findById(assigneeId)
@@ -176,8 +181,10 @@ public class TicketService {
         }
 
         ticket.setAssignedTo(assignee);
-        if (ticket.getStatus() == TicketStatus.OPEN) {
+        if (ticket.getStatus() != TicketStatus.IN_PROGRESS) {
             ticket.setStatus(TicketStatus.IN_PROGRESS);
+            ticket.setResolutionNotes(null);
+            ticket.setRejectionReason(null);
         }
         return mapToResponse(ticketRepository.save(ticket));
     }

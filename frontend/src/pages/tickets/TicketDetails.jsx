@@ -125,7 +125,7 @@ export default function TicketDetails() {
   if (!ticket) return <div>Ticket not found</div>;
 
   const isAssignedTechnician =
-    user?.role === 'TECHNICIAN' && ticket.assignedTo?.id === user?.id;
+    user?.role === 'TECHNICIAN' && Number(ticket.assignedTo?.id) === Number(user?.id);
   const canReject = isAdmin && ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED';
   const canClose = isAdmin && ticket.status === 'RESOLVED';
   const canResolve = isAssignedTechnician && ticket.status === 'IN_PROGRESS';

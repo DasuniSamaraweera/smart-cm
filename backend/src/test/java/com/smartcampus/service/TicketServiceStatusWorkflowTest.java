@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -148,7 +149,9 @@ class TicketServiceStatusWorkflowTest {
     void shouldSetInProgressWhenAssignedFromOpen() {
         Ticket ticket = ticketWithStatus(TicketStatus.OPEN);
         User technician = user(10L, UserRole.TECHNICIAN);
+        User admin = user(1L, UserRole.ADMIN);
 
+        when(currentUser.get()).thenReturn(admin);
         when(ticketRepository.findById(105L)).thenReturn(Optional.of(ticket));
         when(userRepository.findById(10L)).thenReturn(Optional.of(technician));
         when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -163,13 +166,87 @@ class TicketServiceStatusWorkflowTest {
     @Test
     void shouldRejectAssignmentToNonTechnician() {
         Ticket ticket = ticketWithStatus(TicketStatus.OPEN);
-        User admin = user(11L, UserRole.ADMIN);
+        User admin = user(1L, UserRole.ADMIN);
+        User notTechnician = user(11L, UserRole.ADMIN);
 
+        when(currentUser.get()).thenReturn(admin);
         when(ticketRepository.findById(106L)).thenReturn(Optional.of(ticket));
-        when(userRepository.findById(11L)).thenReturn(Optional.of(admin));
+        when(userRepository.findById(11L)).thenReturn(Optional.of(notTechnician));
 
         assertThrows(BadRequestException.class, () -> ticketService.assignTicket(106L, 11L));
         verify(ticketRepository, never()).save(any(Ticket.class));
+    }
+
+    @Test
+    void shouldForbidNonAdminFromAssigningTicket() {
+        Ticket ticket = ticketWithStatus(TicketStatus.OPEN);
+        User technician = user(10L, UserRole.TECHNICIAN);
+
+        when(currentUser.get()).thenReturn(technician);
+
+        assertThrows(ForbiddenException.class, () -> ticketService.assignTicket(108L, 10L));
+        verify(ticketRepository, never()).findById(any(Long.class));
+        verify(ticketRepository, never()).save(any(Ticket.class));
+    }
+
+    @Test
+    void shouldResetResolvedTicketToInProgressWhenAssigned() {
+        Ticket ticket = ticketWithStatus(TicketStatus.RESOLVED);
+        ticket.setResolutionNotes("Previous resolution");
+        User technician = user(10L, UserRole.TECHNICIAN);
+        User admin = user(1L, UserRole.ADMIN);
+
+        when(currentUser.get()).thenReturn(admin);
+        when(ticketRepository.findById(109L)).thenReturn(Optional.of(ticket));
+        when(userRepository.findById(10L)).thenReturn(Optional.of(technician));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TicketResponse response = ticketService.assignTicket(109L, 10L);
+
+        assertEquals(TicketStatus.IN_PROGRESS, response.getStatus());
+        assertNull(response.getResolutionNotes());
+        verify(ticketRepository).save(ticket);
+    }
+
+    @Test
+    void shouldAllowAssignedTechnicianToResolveWithNotes() {
+        User technician = user(12L, UserRole.TECHNICIAN);
+        Ticket ticket = ticketWithStatus(TicketStatus.IN_PROGRESS);
+        ticket.setAssignedTo(technician);
+
+        when(ticketRepository.findById(110L)).thenReturn(Optional.of(ticket));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(currentUser.get()).thenReturn(technician);
+
+        TicketStatusUpdate request = TicketStatusUpdate.builder()
+                .status(TicketStatus.RESOLVED)
+                .resolutionNotes("Moved students to Lab 402 and issue resolved")
+                .build();
+
+        TicketResponse response = ticketService.updateStatus(110L, request);
+
+        assertEquals(TicketStatus.RESOLVED, response.getStatus());
+        assertEquals("Moved students to Lab 402 and issue resolved", response.getResolutionNotes());
+        verify(ticketRepository).save(ticket);
+    }
+
+    @Test
+    void shouldAllowAdminToCloseResolvedTicket() {
+        Ticket ticket = ticketWithStatus(TicketStatus.RESOLVED);
+        User admin = user(1L, UserRole.ADMIN);
+
+        when(ticketRepository.findById(111L)).thenReturn(Optional.of(ticket));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(currentUser.get()).thenReturn(admin);
+
+        TicketStatusUpdate request = TicketStatusUpdate.builder()
+                .status(TicketStatus.CLOSED)
+                .build();
+
+        TicketResponse response = ticketService.updateStatus(111L, request);
+
+        assertEquals(TicketStatus.CLOSED, response.getStatus());
+        verify(ticketRepository).save(ticket);
     }
 
     @Test
