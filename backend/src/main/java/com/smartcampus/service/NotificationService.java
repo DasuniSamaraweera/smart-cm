@@ -4,6 +4,7 @@ import com.smartcampus.dto.NotificationResponse;
 import com.smartcampus.exception.ResourceNotFoundException;
 import com.smartcampus.model.Notification;
 import com.smartcampus.model.User;
+import com.smartcampus.model.enums.NotificationType;
 import com.smartcampus.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,18 @@ public class NotificationService {
                 .referenceId(n.getReferenceId())
                 .createdAt(n.getCreatedAt())
                 .build();
+    }
+
+    // ── called by BookingService and TicketService to trigger notifications ──
+    public void createNotification(User user, String message, NotificationType type, Long referenceId) {
+        Notification notification = Notification.builder()
+                .user(user)
+                .message(message)
+                .type(type)
+                .referenceId(referenceId)
+                .read(false)
+                .build();
+        notificationRepository.save(notification);
     }
 
     public List<NotificationResponse> getUserNotifications(User user) {
