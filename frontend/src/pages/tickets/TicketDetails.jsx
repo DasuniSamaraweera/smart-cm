@@ -37,6 +37,8 @@ export default function TicketDetails() {
   const [resolutionNotesInput, setResolutionNotesInput] = useState('');
   const [rejectionReasonInput, setRejectionReasonInput] = useState('');
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [attachmentUrls, setAttachmentUrls] = useState({});
+  const [attachmentsLoading, setAttachmentsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,6 +50,58 @@ export default function TicketDetails() {
       fetchAssignees();
     }
   }, [isAdmin]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const objectUrls = [];
+
+    const loadAttachments = async () => {
+      if (!ticket?.id || !Array.isArray(ticket.attachments) || ticket.attachments.length === 0) {
+        setAttachmentUrls({});
+        setAttachmentsLoading(false);
+        return;
+      }
+
+      try {
+        setAttachmentsLoading(true);
+        const entries = await Promise.all(
+          ticket.attachments.map(async (attachment) => {
+            const res = await ticketApi.getAttachment(ticket.id, attachment.id);
+            const blob =
+              res.data instanceof Blob
+                ? res.data
+                : new Blob([res.data], {
+                    type: attachment.fileType || 'application/octet-stream',
+                  });
+            const url = URL.createObjectURL(blob);
+            objectUrls.push(url);
+            return [attachment.id, url];
+          })
+        );
+
+        if (isMounted) {
+          setAttachmentUrls(Object.fromEntries(entries));
+        }
+      } catch (err) {
+        console.error('Failed to load attachments', err);
+        if (isMounted) {
+          setAttachmentUrls({});
+          toast.error(err.response?.data?.message || 'Unable to load ticket attachments');
+        }
+      } finally {
+        if (isMounted) {
+          setAttachmentsLoading(false);
+        }
+      }
+    };
+
+    loadAttachments();
+
+    return () => {
+      isMounted = false;
+      objectUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [ticket?.id, ticket?.updatedAt, ticket?.attachments]);
 
   const fetchTicket = async () => {
     try {
@@ -125,7 +179,7 @@ export default function TicketDetails() {
   if (!ticket) return <div>Ticket not found</div>;
 
   const isAssignedTechnician =
-    user?.role === 'TECHNICIAN' && ticket.assignedTo?.id === user?.id;
+    user?.role === 'TECHNICIAN' && Number(ticket.assignedTo?.id) === Number(user?.id);
   const canReject = isAdmin && ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED';
   const canClose = isAdmin && ticket.status === 'RESOLVED';
   const canResolve = isAssignedTechnician && ticket.status === 'IN_PROGRESS';
@@ -159,6 +213,35 @@ export default function TicketDetails() {
                   {ticket.description}
                 </div>
               </div>
+
+              {ticket.attachments?.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Attachments</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {ticket.attachments.map((attachment) => {
+                      const imageUrl = attachmentUrls[attachment.id];
+                      return (
+                        <div key={attachment.id} className="rounded-md border bg-background p-2 space-y-2">
+                          {imageUrl ? (
+                            <a href={imageUrl} target="_blank" rel="noreferrer" className="block">
+                              <img
+                                src={imageUrl}
+                                alt={attachment.fileName}
+                                className="h-36 w-full rounded-md border object-cover"
+                              />
+                            </a>
+                          ) : (
+                            <div className="flex h-36 items-center justify-center rounded-md border bg-muted text-xs text-muted-foreground">
+                              {attachmentsLoading ? 'Loading attachment...' : 'Preview unavailable'}
+                            </div>
+                          )}
+                          <p className="text-xs text-muted-foreground break-all">{attachment.fileName}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {ticket.resolutionNotes && (
                 <div>

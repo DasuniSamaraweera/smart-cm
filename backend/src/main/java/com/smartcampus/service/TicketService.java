@@ -82,12 +82,21 @@ public class TicketService {
     }
 
     @Transactional(readOnly = true)
-        public List<TicketSummaryResponse> getMyTickets(int page, int size) {
+    public List<TicketSummaryResponse> getMyTickets(int page, int size) {
+        return getMyTickets(null, null, page, size);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TicketSummaryResponse> getMyTickets(TicketStatus status,
+                                                    TicketPriority priority,
+                                                    int page,
+                                                    int size) {
         Long userId = requireUserId();
         Pageable pageable = buildPageable(page, size);
 
-        return ticketRepository.findByReporterId(userId, pageable).stream()
-            .map(this::mapToSummaryResponse)
+        return ticketRepository.findWithFilters(status, priority, userId, null, pageable)
+                .stream()
+                .map(this::mapToSummaryResponse)
                 .collect(Collectors.toList());
     }
 
@@ -163,6 +172,11 @@ public class TicketService {
 
     @Transactional
     public TicketResponse assignTicket(Long id, Long assigneeId) {
+        User actor = requireUser();
+        if (actor.getRole() != UserRole.ADMIN) {
+            throw new ForbiddenException("Only admins can assign tickets");
+        }
+
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
         User assignee = userRepository.findById(assigneeId)
@@ -176,8 +190,10 @@ public class TicketService {
         }
 
         ticket.setAssignedTo(assignee);
-        if (ticket.getStatus() == TicketStatus.OPEN) {
+        if (ticket.getStatus() != TicketStatus.IN_PROGRESS) {
             ticket.setStatus(TicketStatus.IN_PROGRESS);
+            ticket.setResolutionNotes(null);
+            ticket.setRejectionReason(null);
         }
         return mapToResponse(ticketRepository.save(ticket));
     }
@@ -235,6 +251,17 @@ public class TicketService {
         ticketRepository.save(ticket);
         
         return ticket.getAttachments().stream().map(this::mapAttachmentToResponse).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public TicketAttachment getAttachment(Long ticketId, Long attachmentId) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
+
+        assertCanView(ticket);
+
+        return ticketAttachmentRepository.findByIdAndTicketId(attachmentId, ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("Attachment not found"));
     }
 
     @Transactional
@@ -551,6 +578,26 @@ public class TicketService {
                 && data[11] == 'P';
     }
 
+    private ResourceResponse mapResourceToResponse(Resource resource) {
+        if (resource == null) {
+            return null;
+        }
+
+        return ResourceResponse.builder()
+                .id(resource.getId())
+                .name(resource.getName())
+                .type(resource.getType())
+                .capacity(resource.getCapacity())
+                .location(resource.getLocation())
+                .description(resource.getDescription())
+                .availabilityStart(resource.getAvailabilityStart())
+                .availabilityEnd(resource.getAvailabilityEnd())
+                .status(resource.getStatus())
+                .createdAt(resource.getCreatedAt())
+                .updatedAt(resource.getUpdatedAt())
+                .build();
+    }
+
     private UserDTO mapUserToDTO(User user) {
         if (user == null) return null;
         return UserDTO.builder()
@@ -618,6 +665,7 @@ public class TicketService {
                 .category(ticket.getCategory())
                 .priority(ticket.getPriority())
                 .status(ticket.getStatus())
+                .resource(mapResourceToResponse(ticket.getResource()))
                 .reporter(mapUserToDTO(ticket.getReporter()))
                 .assignedTo(mapUserToDTO(ticket.getAssignedTo()))
                 .contactEmail(ticket.getContactEmail())
@@ -641,6 +689,7 @@ public class TicketService {
                 .category(ticket.getCategory())
                 .priority(ticket.getPriority())
                 .status(ticket.getStatus())
+                .resource(mapResourceToResponse(ticket.getResource()))
                 .reporter(mapUserToDTO(ticket.getReporter()))
                 .assignedTo(mapUserToDTO(ticket.getAssignedTo()))
                 .contactEmail(ticket.getContactEmail())
