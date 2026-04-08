@@ -253,6 +253,17 @@ public class TicketService {
         return ticket.getAttachments().stream().map(this::mapAttachmentToResponse).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public TicketAttachment getAttachment(Long ticketId, Long attachmentId) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
+
+        assertCanView(ticket);
+
+        return ticketAttachmentRepository.findByIdAndTicketId(attachmentId, ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("Attachment not found"));
+    }
+
     @Transactional
     public void deleteTicket(Long ticketId) {
         Ticket ticket = ticketRepository.findById(ticketId)

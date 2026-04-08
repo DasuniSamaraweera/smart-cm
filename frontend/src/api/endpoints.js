@@ -29,6 +29,8 @@ export const bookingApi = {
 export const ticketApi = {
   getAll: (params) => api.get('/api/tickets', { params }),
   getById: (id) => api.get(`/api/tickets/${id}`),
+  getAttachment: (ticketId, attachmentId) =>
+    api.get(`/api/tickets/${ticketId}/attachments/${attachmentId}`, { responseType: 'blob' }),
   create: (data) => api.post('/api/tickets', data, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),

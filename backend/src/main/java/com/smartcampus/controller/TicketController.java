@@ -1,15 +1,20 @@
 package com.smartcampus.controller;
 
 import com.smartcampus.dto.*;
+import com.smartcampus.model.TicketAttachment;
 import com.smartcampus.service.TicketService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -88,6 +93,29 @@ public class TicketController {
             @PathVariable Long id,
             @RequestPart("files") List<MultipartFile> files) {
         return ResponseEntity.ok(ticketService.addAttachments(id, files));
+    }
+
+    @GetMapping("/{ticketId}/attachments/{attachmentId}")
+    public ResponseEntity<byte[]> viewAttachment(
+            @PathVariable Long ticketId,
+            @PathVariable Long attachmentId) {
+        TicketAttachment attachment = ticketService.getAttachment(ticketId, attachmentId);
+
+        MediaType mediaType;
+        try {
+            mediaType = MediaType.parseMediaType(attachment.getFileType());
+        } catch (Exception ex) {
+            mediaType = MediaType.APPLICATION_OCTET_STREAM;
+        }
+
+        ContentDisposition disposition = ContentDisposition.inline()
+                .filename(attachment.getFileName(), StandardCharsets.UTF_8)
+                .build();
+
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+                .body(attachment.getFileData());
     }
 
     @DeleteMapping("/{id}/comments/{commentId}")
