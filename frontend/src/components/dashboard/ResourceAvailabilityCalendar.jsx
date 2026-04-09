@@ -48,6 +48,19 @@ function hasOverlap(booking, targetDate) {
   return bookingStart < dayEnd && bookingEnd > dayStart
 }
 
+function matchesAvailabilityDate(resource, targetDate) {
+  if (!resource?.availabilityDate) return true
+
+  const [year, month, day] = resource.availabilityDate.split('-').map(Number)
+  if (!year || !month || !day) return false
+
+  return (
+    targetDate.getFullYear() === year
+    && targetDate.getMonth() + 1 === month
+    && targetDate.getDate() === day
+  )
+}
+
 function formatTime(value) {
   if (!value) return '--:--'
 
@@ -77,11 +90,17 @@ export default function ResourceAvailabilityCalendar({ resources = [], bookings 
   const monthCells = useMemo(() => getMonthCells(visibleMonth), [visibleMonth])
 
   const getAvailabilityForDate = (date) => {
-    if (activeResources.length === 0) {
-      return { availableCount: 0, dayBookings: [] }
+    const resourcesForDate = activeResources.filter((resource) => matchesAvailabilityDate(resource, date))
+
+    if (resourcesForDate.length === 0) {
+      return { availableCount: 0, dayBookings: [], resourcesForDate: [] }
     }
 
-    const dayBookings = approvedBookings.filter((booking) => hasOverlap(booking, date))
+    const resourceIdsForDate = new Set(resourcesForDate.map((resource) => resource.id))
+
+    const dayBookings = approvedBookings.filter(
+      (booking) => hasOverlap(booking, date) && resourceIdsForDate.has(booking.resource?.id),
+    )
     const bookedResourceIds = new Set(
       dayBookings
         .map((booking) => booking.resource?.id)
@@ -89,8 +108,9 @@ export default function ResourceAvailabilityCalendar({ resources = [], bookings 
     )
 
     return {
-      availableCount: Math.max(activeResources.length - bookedResourceIds.size, 0),
+      availableCount: Math.max(resourcesForDate.length - bookedResourceIds.size, 0),
       dayBookings,
+      resourcesForDate,
     }
   }
 
@@ -151,7 +171,7 @@ export default function ResourceAvailabilityCalendar({ resources = [], bookings 
           ))}
 
           {monthCells.map(({ date, inCurrentMonth }) => {
-            const { availableCount } = getAvailabilityForDate(date)
+            const { availableCount, resourcesForDate } = getAvailabilityForDate(date)
             const isSelected = isSameDay(date, selectedDate)
             const isToday = isSameDay(date, new Date())
 
@@ -176,7 +196,7 @@ export default function ResourceAvailabilityCalendar({ resources = [], bookings 
               >
                 <p className={cn('text-sm font-semibold', isToday && 'text-primary')}>{date.getDate()}</p>
                 <p className={cn('mt-1 text-[11px]', availabilityTone)}>
-                  {activeResources.length === 0 ? 'No active resources' : `${availableCount}/${activeResources.length} free`}
+                  {activeResources.length === 0 ? 'No active resources' : `${availableCount}/${resourcesForDate.length} free`}
                 </p>
               </button>
             )
@@ -197,7 +217,7 @@ export default function ResourceAvailabilityCalendar({ resources = [], bookings 
               <p className="mt-1 text-sm text-muted-foreground">
                 {activeResources.length === 0
                   ? 'No active resources configured.'
-                  : `${selectedDay.availableCount} of ${activeResources.length} resources available`}
+                  : `${selectedDay.availableCount} of ${selectedDay.resourcesForDate.length} resources available for this date`}
               </p>
             </div>
             <Badge variant={selectedDay.availableCount === 0 && activeResources.length > 0 ? 'destructive' : 'secondary'}>
@@ -209,9 +229,11 @@ export default function ResourceAvailabilityCalendar({ resources = [], bookings 
             <p className="mt-4 text-sm text-muted-foreground">Loading availability...</p>
           ) : activeResources.length === 0 ? (
             <p className="mt-4 text-sm text-muted-foreground">Add and activate resources to see calendar availability.</p>
+          ) : selectedDay.resourcesForDate.length === 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">No resources are scheduled for the selected date.</p>
           ) : (
             <div className="mt-4 space-y-2">
-              {activeResources.map((resource) => {
+              {selectedDay.resourcesForDate.map((resource) => {
                 const dayBookings = selectedDayByResource.get(resource.id) || []
                 const isBooked = dayBookings.length > 0
 
