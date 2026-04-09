@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/context/AuthContext'
-import { resourceApi, ticketApi } from '@/api/endpoints'
+import { bookingApi, resourceApi, ticketApi } from '@/api/endpoints'
+import ResourceAvailabilityCalendar from '@/components/dashboard/ResourceAvailabilityCalendar'
 
 const statusVariant = {
   OPEN: 'default',
@@ -30,6 +31,12 @@ export default function DashboardPage() {
       ticketApi
         .getAll(isRegularUser ? { my: true, page: 0, size: 5 } : { page: 0, size: 5 })
         .then((res) => res.data),
+  })
+
+  const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
+    queryKey: ['dashboard-bookings-availability'],
+    enabled: user?.role === 'ADMIN',
+    queryFn: () => bookingApi.getAll().then((res) => res.data),
   })
 
   const activeResources = resources.filter((r) => r.status === 'ACTIVE').length
@@ -140,6 +147,14 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {user?.role === 'ADMIN' && (
+        <ResourceAvailabilityCalendar
+          resources={resources}
+          bookings={Array.isArray(bookings) ? bookings : []}
+          isLoading={bookingsLoading}
+        />
+      )}
     </div>
   )
 }
