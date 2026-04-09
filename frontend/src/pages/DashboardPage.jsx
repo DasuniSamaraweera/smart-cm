@@ -7,6 +7,8 @@ import { useAuth } from '@/context/AuthContext'
 import { bookingApi, resourceApi, ticketApi } from '@/api/endpoints'
 import ResourceAvailabilityCalendar from '@/components/dashboard/ResourceAvailabilityCalendar'
 
+const TICKET_PAGE_SIZE = 100
+
 const statusVariant = {
   OPEN: 'default',
   IN_PROGRESS: 'warning',
@@ -18,6 +20,30 @@ const statusVariant = {
 export default function DashboardPage() {
   const { user } = useAuth()
   const isRegularUser = user?.role === 'USER'
+
+  const fetchOpenTicketCount = async () => {
+    let page = 0
+    let total = 0
+
+    while (true) {
+      const params = isRegularUser
+        ? { my: true, status: 'OPEN', page, size: TICKET_PAGE_SIZE }
+        : { status: 'OPEN', page, size: TICKET_PAGE_SIZE }
+
+      const { data } = await ticketApi.getAll(params)
+      const batch = Array.isArray(data) ? data : []
+
+      total += batch.length
+
+      if (batch.length < TICKET_PAGE_SIZE) {
+        break
+      }
+
+      page += 1
+    }
+
+    return total
+  }
 
   const { data: resources = [] } = useQuery({
     queryKey: ['resources'],
@@ -33,6 +59,12 @@ export default function DashboardPage() {
         .then((res) => res.data),
   })
 
+  const { data: openTickets = 0, isLoading: openTicketsLoading } = useQuery({
+    queryKey: ['dashboard-open-ticket-count', user?.id, user?.role],
+    enabled: !!user,
+    queryFn: fetchOpenTicketCount,
+  })
+
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
     queryKey: ['dashboard-bookings-availability'],
     enabled: user?.role === 'ADMIN',
@@ -41,7 +73,6 @@ export default function DashboardPage() {
 
   const activeResources = resources.filter((r) => r.status === 'ACTIVE').length
   const totalResources = resources.length
-  const openTickets = tickets.filter((ticket) => ticket.status === 'OPEN').length
   const recentTickets = [...tickets]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5)
@@ -119,7 +150,7 @@ export default function DashboardPage() {
     },
     {
       title: 'Open Tickets',
-      value: openTickets,
+      value: openTicketsLoading ? '...' : openTickets,
       icon: TicketCheck,
       color: 'text-amber-600',
       bg: 'bg-amber-100',
