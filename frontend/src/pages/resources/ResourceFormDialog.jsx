@@ -29,6 +29,7 @@ const emptyForm = {
   capacity: '',
   location: '',
   description: '',
+  availabilityDate: '',
   availabilityStart: '',
   availabilityEnd: '',
   status: 'ACTIVE',
@@ -47,6 +48,7 @@ export default function ResourceFormDialog({ open, onOpenChange, resource }) {
         capacity: resource.capacity?.toString() || '',
         location: resource.location || '',
         description: resource.description || '',
+        availabilityDate: resource.availabilityDate || '',
         availabilityStart: resource.availabilityStart || '',
         availabilityEnd: resource.availabilityEnd || '',
         status: resource.status || 'ACTIVE',
@@ -75,6 +77,7 @@ export default function ResourceFormDialog({ open, onOpenChange, resource }) {
     const payload = {
       ...form,
       capacity: form.capacity ? parseInt(form.capacity, 10) : null,
+      availabilityDate: form.availabilityDate || null,
       availabilityStart: form.availabilityStart || null,
       availabilityEnd: form.availabilityEnd || null,
     }
@@ -160,6 +163,18 @@ export default function ResourceFormDialog({ open, onOpenChange, resource }) {
                 placeholder="Describe the resource..."
                 rows={3}
                 className="mt-1.5"
+              />
+            </div>
+
+            <div className="col-span-2">
+              <Label htmlFor="availabilityDate">Availability Date</Label>
+              <Input
+                id="availabilityDate"
+                type="date"
+                value={form.availabilityDate}
+                onChange={(e) => updateField('availabilityDate', e.target.value)}
+                className="mt-1.5"
+                required
               />
             </div>
 

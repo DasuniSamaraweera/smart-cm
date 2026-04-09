@@ -320,9 +320,9 @@ export default function ResourcesPage() {
                     <Badge variant={resource.status === 'ACTIVE' ? 'success' : 'destructive'}>
                       {resource.status === 'ACTIVE' ? 'Active' : 'Out of Service'}
                     </Badge>
-                    {resource.availabilityStart && resource.availabilityEnd && (
+                    {resource.availabilityDate && resource.availabilityStart && resource.availabilityEnd && (
                       <span className="text-xs text-muted-foreground">
-                        {resource.availabilityStart} - {resource.availabilityEnd}
+                        {resource.availabilityDate} • {resource.availabilityStart} - {resource.availabilityEnd}
                       </span>
                     )}
                   </div>

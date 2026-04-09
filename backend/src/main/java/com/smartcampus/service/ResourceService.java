@@ -61,6 +61,7 @@ public class ResourceService {
                 .capacity(request.getCapacity())
                 .location(request.getLocation())
                 .description(request.getDescription())
+                .availabilityDate(request.getAvailabilityDate())
                 .availabilityStart(request.getAvailabilityStart())
                 .availabilityEnd(request.getAvailabilityEnd())
                 .status(request.getStatus() != null ? request.getStatus() : ResourceStatus.ACTIVE)
@@ -79,6 +80,7 @@ public class ResourceService {
         resource.setCapacity(request.getCapacity());
         resource.setLocation(request.getLocation());
         resource.setDescription(request.getDescription());
+        resource.setAvailabilityDate(request.getAvailabilityDate());
         resource.setAvailabilityStart(request.getAvailabilityStart());
         resource.setAvailabilityEnd(request.getAvailabilityEnd());
         if (request.getStatus() != null) {
@@ -104,6 +106,7 @@ public class ResourceService {
                 .capacity(resource.getCapacity())
                 .location(resource.getLocation())
                 .description(resource.getDescription())
+                .availabilityDate(resource.getAvailabilityDate())
                 .availabilityStart(resource.getAvailabilityStart())
                 .availabilityEnd(resource.getAvailabilityEnd())
                 .status(resource.getStatus())

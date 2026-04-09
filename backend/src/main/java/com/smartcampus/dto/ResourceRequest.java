@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Getter @Setter
@@ -25,6 +26,9 @@ public class ResourceRequest {
     private String location;
 
     private String description;
+
+    @NotNull(message = "Availability date is required")
+    private LocalDate availabilityDate;
 
     private LocalTime availabilityStart;
 

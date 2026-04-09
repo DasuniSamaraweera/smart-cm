@@ -136,9 +136,9 @@ function BookingFormDialog({ open, onClose, preselectedResourceId }) {
                 ))}
               </SelectContent>
             </Select>
-            {selectedResource?.availabilityStart && (
+            {selectedResource?.availabilityDate && selectedResource?.availabilityStart && (
               <p className="text-xs text-muted-foreground">
-                Available {fmtTime(selectedResource.availabilityStart)} – {fmtTime(selectedResource.availabilityEnd)}
+                Available {selectedResource.availabilityDate} · {fmtTime(selectedResource.availabilityStart)} – {fmtTime(selectedResource.availabilityEnd)}
                 {selectedResource.capacity ? ` · Capacity: ${selectedResource.capacity}` : ''}
               </p>
             )}
