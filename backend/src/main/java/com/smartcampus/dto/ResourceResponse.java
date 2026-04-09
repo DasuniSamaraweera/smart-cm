@@ -4,6 +4,7 @@ import com.smartcampus.model.enums.ResourceStatus;
 import com.smartcampus.model.enums.ResourceType;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -17,6 +18,7 @@ public class ResourceResponse {
     private Integer capacity;
     private String location;
     private String description;
+    private LocalDate availabilityDate;
     private LocalTime availabilityStart;
     private LocalTime availabilityEnd;
     private ResourceStatus status;

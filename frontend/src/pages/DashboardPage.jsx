@@ -77,6 +77,62 @@ export default function DashboardPage() {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5)
 
+  const resourceUsage = bookings.reduce((acc, booking) => {
+    const resourceId = booking?.resource?.id
+    const resourceName = booking?.resource?.name
+    if (!resourceId || !resourceName) return acc
+
+    const start = booking?.startTime ? new Date(booking.startTime) : null
+    const end = booking?.endTime ? new Date(booking.endTime) : null
+    const durationHours = start && end && end > start
+      ? (end.getTime() - start.getTime()) / (1000 * 60 * 60)
+      : 0
+
+    if (!acc[resourceId]) {
+      acc[resourceId] = {
+        resourceId,
+        resourceName,
+        bookingsCount: 0,
+        totalHours: 0,
+      }
+    }
+
+    acc[resourceId].bookingsCount += 1
+    acc[resourceId].totalHours += durationHours
+
+    return acc
+  }, {})
+
+  const topResources = Object.values(resourceUsage)
+    .sort((a, b) => {
+      if (b.bookingsCount !== a.bookingsCount) {
+        return b.bookingsCount - a.bookingsCount
+      }
+      return b.totalHours - a.totalHours
+    })
+    .slice(0, 5)
+
+  const peakUsageCount = topResources[0]?.bookingsCount || 1
+  const pieColors = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4']
+  const totalUsageBookings = topResources.reduce((sum, item) => sum + item.bookingsCount, 0)
+  const pieSegments = topResources.map((item, index) => ({
+    ...item,
+    color: pieColors[index % pieColors.length],
+    ratio: totalUsageBookings > 0 ? item.bookingsCount / totalUsageBookings : 0,
+  }))
+
+  let accumulated = 0
+  const pieGradient = pieSegments.length === 0
+    ? '#e2e8f0 0 100%'
+    : pieSegments
+      .map((segment) => {
+        const start = accumulated * 360
+        accumulated += segment.ratio
+        const end = accumulated * 360
+        return `${segment.color} ${start}deg ${end}deg`
+      })
+      .join(', ')
+
   const stats = [
     {
       title: 'Total Resources',
@@ -109,13 +165,14 @@ export default function DashboardPage() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-2">
       {/* Welcome */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
+      <div className="rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-cyan-500/10 p-5 shadow-sm">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-500">Operations Snapshot</p>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
           Welcome back, {user?.name?.split(' ')[0] || 'User'} 👋
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="mt-1 text-sm text-slate-600">
           Here's an overview of the campus operations today.
         </p>
       </div>
@@ -123,14 +180,14 @@ export default function DashboardPage() {
       {/* Stats grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.title}>
+          <Card key={stat.title} className="rounded-2xl border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">{stat.title}</p>
-                  <p className="text-3xl font-bold mt-1">{stat.value}</p>
+                  <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">{stat.title}</p>
+                  <p className="mt-1 text-3xl font-bold text-slate-900">{stat.value}</p>
                 </div>
-                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.bg}`}>
+                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ring-1 ring-black/5 ${stat.bg}`}>
                   <stat.icon className={`h-6 w-6 ${stat.color}`} />
                 </div>
               </div>
@@ -141,32 +198,32 @@ export default function DashboardPage() {
 
       {/* Quick actions */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg">Recent Bookings</CardTitle>
+            <CardTitle className="text-lg text-slate-900">Recent Bookings</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">No bookings yet. Create your first booking from the Bookings page.</p>
+            <p className="text-sm text-slate-600">No bookings yet. Create your first booking from the Bookings page.</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg">Recent Tickets</CardTitle>
+            <CardTitle className="text-lg text-slate-900">Recent Tickets</CardTitle>
           </CardHeader>
           <CardContent>
             {ticketsLoading ? (
-              <p className="text-sm text-muted-foreground">Loading tickets...</p>
+              <p className="text-sm text-slate-600">Loading tickets...</p>
             ) : recentTickets.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No tickets yet. Report an issue from the Tickets page.</p>
+              <p className="text-sm text-slate-600">No tickets yet. Report an issue from the Tickets page.</p>
             ) : (
               <div className="space-y-3">
                 {recentTickets.map((ticket) => (
-                  <div key={ticket.id} className="flex items-center justify-between gap-3 rounded-md border p-3">
+                  <div key={ticket.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
                     <div className="min-w-0">
-                      <Link to={`/tickets/${ticket.id}`} className="block truncate text-sm font-medium hover:underline">
+                      <Link to={`/tickets/${ticket.id}`} className="block truncate text-sm font-medium text-slate-900 hover:underline">
                         {ticket.title}
                       </Link>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-slate-500">
                         #{ticket.id} • {new Date(ticket.createdAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -178,6 +235,74 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {user?.role === 'ADMIN' && (
+        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg text-slate-900">Usage Analytics (Top Resources)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {bookingsLoading ? (
+              <p className="text-sm text-slate-600">Loading usage analytics...</p>
+            ) : topResources.length === 0 ? (
+              <p className="text-sm text-slate-600">No booking usage data available yet.</p>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-[260px_1fr]">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="mx-auto flex h-44 w-44 items-center justify-center rounded-full"
+                    style={{ background: `conic-gradient(${pieGradient})` }}
+                  >
+                    <div className="flex h-24 w-24 flex-col items-center justify-center rounded-full bg-white shadow-sm">
+                      <p className="text-[11px] uppercase tracking-[0.08em] text-slate-500">Total</p>
+                      <p className="text-xl font-bold text-slate-900">{totalUsageBookings}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 space-y-2">
+                    {pieSegments.map((item) => (
+                      <div key={`legend-${item.resourceId}`} className="flex items-center justify-between gap-2 text-xs">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className="h-2.5 w-2.5 rounded-full"
+                            style={{ backgroundColor: item.color }}
+                          />
+                          <span className="truncate text-slate-700">{item.resourceName}</span>
+                        </div>
+                        <span className="font-medium text-slate-800">{Math.round(item.ratio * 100)}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {topResources.map((item, index) => {
+                    const usagePercent = Math.round((item.bookingsCount / peakUsageCount) * 100)
+
+                    return (
+                      <div key={item.resourceId} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-medium text-slate-900">
+                            {index + 1}. {item.resourceName}
+                          </p>
+                          <p className="text-xs text-slate-600">
+                            {item.bookingsCount} booking{item.bookingsCount > 1 ? 's' : ''} • {item.totalHours.toFixed(1)}h
+                          </p>
+                        </div>
+                        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                          <div
+                            className="h-full rounded-full bg-indigo-500"
+                            style={{ width: `${usagePercent}%` }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {user?.role === 'ADMIN' && (
         <ResourceAvailabilityCalendar

@@ -590,6 +590,7 @@ public class TicketService {
                 .capacity(resource.getCapacity())
                 .location(resource.getLocation())
                 .description(resource.getDescription())
+                .availabilityDate(resource.getAvailabilityDate())
                 .availabilityStart(resource.getAvailabilityStart())
                 .availabilityEnd(resource.getAvailabilityEnd())
                 .status(resource.getStatus())

@@ -108,65 +108,66 @@ export default function UserManagementPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">User Management</h1>
-        <p className="text-muted-foreground mt-1">
+    <div className="space-y-6 pb-2">
+      <div className="rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-cyan-500/10 p-5 shadow-sm">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-500">Administration</p>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">User Management</h1>
+        <p className="mt-1 text-sm text-slate-600">
           View registered users and manage their roles.
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
+        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <CardContent className="flex items-center gap-3 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 ring-1 ring-blue-200/60">
               <Users className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{users.length}</p>
-              <p className="text-xs text-muted-foreground">Total Users</p>
+              <p className="text-2xl font-bold text-slate-900">{users.length}</p>
+              <p className="text-xs uppercase tracking-[0.1em] text-slate-500">Total Users</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100">
+        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <CardContent className="flex items-center gap-3 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 ring-1 ring-red-200/60">
               <ShieldCheck className="h-5 w-5 text-red-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold">
+              <p className="text-2xl font-bold text-slate-900">
                 {users.filter((u) => u.role === 'ADMIN').length}
               </p>
-              <p className="text-xs text-muted-foreground">Admins</p>
+              <p className="text-xs uppercase tracking-[0.1em] text-slate-500">Admins</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
+        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <CardContent className="flex items-center gap-3 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 ring-1 ring-emerald-200/60">
               <Shield className="h-5 w-5 text-emerald-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold">
+              <p className="text-2xl font-bold text-slate-900">
                 {users.filter((u) => u.role === 'USER').length}
               </p>
-              <p className="text-xs text-muted-foreground">Regular Users</p>
+              <p className="text-xs uppercase tracking-[0.1em] text-slate-500">Regular Users</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* User List */}
-      <Card>
+      <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
         <CardHeader>
-          <CardTitle className="text-base">All Users</CardTitle>
+          <CardTitle className="text-base text-slate-900">All Users</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-4">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-14 bg-muted animate-pulse rounded" />
+                <div key={i} className="h-14 animate-pulse rounded-xl bg-slate-100" />
               ))}
             </div>
           ) : users.length === 0 ? (
@@ -185,25 +186,25 @@ export default function UserManagementPage() {
                 return (
                   <div
                     key={user.id}
-                    className="flex items-center justify-between px-6 py-4 hover:bg-muted/50 group"
+                    className="group flex items-center justify-between px-6 py-4 transition-colors hover:bg-slate-50"
                   >
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
                         <AvatarImage src={user.avatarUrl} alt={user.name} />
-                        <AvatarFallback>
+                        <AvatarFallback className="bg-indigo-100 text-indigo-700">
                           {user.name?.charAt(0)?.toUpperCase() || '?'}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium">{user.name}</p>
+                          <p className="text-sm font-medium text-slate-900">{user.name}</p>
                           {isSelf && (
                             <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                               You
                             </Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1 text-xs text-slate-500">
                           <Mail className="h-3 w-3" />
                           {user.email}
                         </div>
@@ -218,7 +219,7 @@ export default function UserManagementPage() {
                           value={user.role}
                           onValueChange={(val) => handleRoleQuickChange(user.id, val)}
                         >
-                          <SelectTrigger className="w-[140px] h-8 text-xs">
+                          <SelectTrigger className="h-8 w-[140px] rounded-xl border-slate-200 bg-slate-50 text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -234,7 +235,7 @@ export default function UserManagementPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="h-8 w-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
@@ -266,40 +267,41 @@ export default function UserManagementPage() {
 
       {/* Edit User Dialog */}
       <Dialog open={editDialog} onOpenChange={setEditDialog}>
-        <DialogContent className="sm:max-w-[420px]">
+        <DialogContent className="sm:max-w-[440px] rounded-2xl border-indigo-100 bg-gradient-to-b from-indigo-50/60 to-white">
           <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>Update user details and role.</DialogDescription>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-500">User Profile</p>
+            <DialogTitle className="text-slate-900">Edit User</DialogTitle>
+            <DialogDescription className="text-slate-600">Update user details and role.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleEditSubmit} className="space-y-4">
+          <form onSubmit={handleEditSubmit} className="space-y-4 rounded-xl border border-indigo-100 bg-white p-4 shadow-sm">
             <div>
-              <Label htmlFor="edit-name">Name</Label>
+              <Label htmlFor="edit-name" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Name</Label>
               <Input
                 id="edit-name"
                 value={editForm.name}
                 onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
-                className="mt-1.5"
+                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
                 required
               />
             </div>
             <div>
-              <Label htmlFor="edit-email">Email</Label>
+              <Label htmlFor="edit-email" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Email</Label>
               <Input
                 id="edit-email"
                 type="email"
                 value={editForm.email}
                 onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
-                className="mt-1.5"
+                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
                 required
               />
             </div>
             <div>
-              <Label>Role</Label>
+              <Label className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Role</Label>
               <Select
                 value={editForm.role}
                 onValueChange={(val) => setEditForm((f) => ({ ...f, role: val }))}
               >
-                <SelectTrigger className="mt-1.5">
+                <SelectTrigger className="mt-1.5 rounded-xl border-slate-200 bg-slate-50">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -310,10 +312,10 @@ export default function UserManagementPage() {
               </Select>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setEditDialog(false)}>
+              <Button type="button" variant="outline" className="rounded-xl border-slate-300" onClick={() => setEditDialog(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={updateMutation.isPending}>
+              <Button type="submit" className="rounded-xl bg-indigo-600 text-white hover:bg-indigo-700" disabled={updateMutation.isPending}>
                 {updateMutation.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}

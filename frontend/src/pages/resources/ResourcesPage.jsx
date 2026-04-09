@@ -53,7 +53,72 @@ const typeLabels = {
   EQUIPMENT: 'Equipment',
 }
 
+const typeCardStyles = {
+  LECTURE_HALL: 'from-sky-500/15 to-blue-500/10',
+  LAB: 'from-emerald-500/15 to-green-500/10',
+  MEETING_ROOM: 'from-violet-500/15 to-indigo-500/10',
+  EQUIPMENT: 'from-amber-500/15 to-orange-500/10',
+}
+
 const resourceTypes = ['LECTURE_HALL', 'MEETING_ROOM', 'LAB', 'EQUIPMENT']
+
+function parseDateTime(dateValue, timeValue) {
+  if (!dateValue || !timeValue) return null
+  const parsed = new Date(`${dateValue}T${timeValue}`)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+function computeLocationRelevance(resourceLocation, preferredLocation) {
+  if (!preferredLocation?.trim()) return 0.5
+  if (!resourceLocation?.trim()) return 0
+
+  const resourceText = resourceLocation.toLowerCase()
+  const preferredText = preferredLocation.toLowerCase().trim()
+
+  if (resourceText.includes(preferredText) || preferredText.includes(resourceText)) {
+    return 1
+  }
+
+  const preferredTokens = preferredText.split(/\s+/).filter(Boolean)
+  if (preferredTokens.length === 0) return 0.5
+
+  const matched = preferredTokens.filter((token) => resourceText.includes(token)).length
+  return matched / preferredTokens.length
+}
+
+function computeCapacityFit(resourceCapacity, desiredCapacity) {
+  if (!desiredCapacity) return 0.5
+  if (!resourceCapacity || resourceCapacity <= 0) return 0
+
+  const gap = Math.abs(resourceCapacity - desiredCapacity)
+  const normalizedGap = Math.min(gap / Math.max(desiredCapacity, 1), 1)
+  return 1 - normalizedGap
+}
+
+function computeAvailabilityFit(resource, desiredStart, desiredEnd) {
+  if (!desiredStart || !desiredEnd) return 0.5
+
+  if (resource.status !== 'ACTIVE') return 0
+  if (!resource.availabilityDate || !resource.availabilityStart || !resource.availabilityEnd) return 0
+
+  const availableStart = new Date(`${resource.availabilityDate}T${resource.availabilityStart}`)
+  const availableEnd = new Date(`${resource.availabilityDate}T${resource.availabilityEnd}`)
+
+  if (Number.isNaN(availableStart.getTime()) || Number.isNaN(availableEnd.getTime())) return 0
+  if (desiredEnd <= desiredStart) return 0
+
+  return desiredStart >= availableStart && desiredEnd <= availableEnd ? 1 : 0
+}
+
+function getSmartFitScore(resource, preferences) {
+  const capacity = computeCapacityFit(resource.capacity, preferences.desiredCapacity)
+  const location = computeLocationRelevance(resource.location, preferences.preferredLocation)
+  const availability = computeAvailabilityFit(resource, preferences.desiredStart, preferences.desiredEnd)
+
+  const score = (capacity * 0.35) + (location * 0.25) + (availability * 0.4)
+
+  return Math.round(score * 100)
+}
 
 export default function ResourcesPage() {
   const { isAdmin } = useAuth()
@@ -63,6 +128,12 @@ export default function ResourcesPage() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [minCapacity, setMinCapacity] = useState('')
+  const [sortMode, setSortMode] = useState('DEFAULT')
+  const [preferredLocation, setPreferredLocation] = useState('')
+  const [desiredCapacity, setDesiredCapacity] = useState('')
+  const [desiredDate, setDesiredDate] = useState('')
+  const [desiredStartTime, setDesiredStartTime] = useState('')
+  const [desiredEndTime, setDesiredEndTime] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingResource, setEditingResource] = useState(null)
 
@@ -81,6 +152,23 @@ export default function ResourcesPage() {
   const resources = selectedCategory
     ? allResources.filter((resource) => resource.type === selectedCategory)
     : allResources
+
+  const desiredStart = parseDateTime(desiredDate, desiredStartTime)
+  const desiredEnd = parseDateTime(desiredDate, desiredEndTime)
+
+  const displayedResources = sortMode === 'SMART_FIT'
+    ? [...resources]
+      .map((resource) => ({
+        ...resource,
+        smartFitScore: getSmartFitScore(resource, {
+          desiredCapacity: desiredCapacity ? Number(desiredCapacity) : null,
+          preferredLocation,
+          desiredStart,
+          desiredEnd,
+        }),
+      }))
+      .sort((a, b) => b.smartFitScore - a.smartFitScore)
+    : resources
 
   const applyAssistantFilters = (patch) => {
     if (Object.prototype.hasOwnProperty.call(patch, 'type')) {
@@ -133,17 +221,18 @@ export default function ResourcesPage() {
   }, {})
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-2">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-cyan-500/10 p-5 shadow-sm">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Facilities & Resources</h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-500">Resource Catalogue</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Facilities & Resources</h1>
+          <p className="mt-1 text-sm text-slate-600">
             Manage campus resources, halls, labs, rooms, and equipment.
           </p>
         </div>
         {isAdmin && (
-          <Button onClick={handleCreate} className="gap-2">
+          <Button onClick={handleCreate} className="gap-2 rounded-xl bg-indigo-600 text-white shadow-sm hover:bg-indigo-700">
             <Plus className="h-4 w-4" />
             Add Resource
           </Button>
@@ -151,8 +240,9 @@ export default function ResourcesPage() {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="rounded-2xl border-indigo-100 bg-white/90 shadow-sm">
         <CardContent className="p-4">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Search And Ranking</p>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -160,11 +250,11 @@ export default function ResourcesPage() {
                 placeholder="Search resources..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
+                className="pl-9 rounded-xl border-slate-200 bg-slate-50"
               />
             </div>
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v === 'ALL' ? '' : v)}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger className="w-full rounded-xl border-slate-200 bg-slate-50 sm:w-[180px]">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -179,9 +269,66 @@ export default function ResourcesPage() {
               value={minCapacity}
               onChange={(e) => setMinCapacity(e.target.value)}
               placeholder="Min capacity"
-              className="w-full sm:w-[140px]"
+              className="w-full rounded-xl border-slate-200 bg-slate-50 sm:w-[140px]"
             />
           </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <Select value={sortMode} onValueChange={setSortMode}>
+              <SelectTrigger className="rounded-xl border-slate-200 bg-slate-50">
+                <SelectValue placeholder="Sort mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="DEFAULT">Default order</SelectItem>
+                <SelectItem value="SMART_FIT">Best Fit (Smart Sort)</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Input
+              value={preferredLocation}
+              onChange={(e) => setPreferredLocation(e.target.value)}
+              placeholder="Preferred location"
+              className="rounded-xl border-slate-200 bg-slate-50"
+            />
+
+            <Input
+              type="number"
+              min="1"
+              value={desiredCapacity}
+              onChange={(e) => setDesiredCapacity(e.target.value)}
+              placeholder="Desired capacity"
+              className="rounded-xl border-slate-200 bg-slate-50"
+            />
+
+            <Input
+              type="date"
+              value={desiredDate}
+              onChange={(e) => setDesiredDate(e.target.value)}
+              className="rounded-xl border-slate-200 bg-slate-50"
+            />
+
+            <Input
+              type="time"
+              value={desiredStartTime}
+              onChange={(e) => setDesiredStartTime(e.target.value)}
+              placeholder="Start time"
+              className="rounded-xl border-slate-200 bg-slate-50"
+            />
+
+            <Input
+              type="time"
+              value={desiredEndTime}
+              onChange={(e) => setDesiredEndTime(e.target.value)}
+              placeholder="End time"
+              className="rounded-xl border-slate-200 bg-slate-50"
+            />
+          </div>
+
+          {sortMode === 'SMART_FIT' && (
+            <p className="mt-3 rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2 text-xs text-indigo-700">
+              Best Fit uses capacity closeness, location relevance, and availability for the selected date/time.
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -193,19 +340,19 @@ export default function ResourcesPage() {
           return (
             <Card
               key={type}
-              className={`cursor-pointer transition-all hover:shadow-md ${
-                isSelected ? 'ring-2 ring-primary border-primary' : ''
+              className={`cursor-pointer rounded-2xl border transition-all hover:-translate-y-0.5 hover:shadow-md ${
+                isSelected ? 'border-indigo-400 ring-2 ring-indigo-300/60 shadow-sm' : 'border-slate-200'
               }`}
               onClick={() => setSelectedCategory(type)}
             >
-              <CardContent className="p-5">
+              <CardContent className={`rounded-2xl bg-gradient-to-br p-5 ${typeCardStyles[type] || 'from-slate-100 to-white'}`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">{typeLabels[type]}</p>
-                    <p className="text-2xl font-semibold mt-1">{resourceCounts[type] || 0}</p>
+                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">{typeLabels[type]}</p>
+                    <p className="mt-1 text-2xl font-semibold text-slate-800">{resourceCounts[type] || 0}</p>
                   </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <Icon className="h-5 w-5 text-primary" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/70 shadow-sm">
+                    <Icon className="h-5 w-5 text-slate-700" />
                   </div>
                 </div>
               </CardContent>
@@ -219,13 +366,13 @@ export default function ResourcesPage() {
           <p className="text-sm text-muted-foreground">
             Showing {typeLabels[selectedCategory]} resources only
           </p>
-          <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedCategory('')}>
+          <Button type="button" variant="outline" size="sm" className="rounded-xl border-slate-300" onClick={() => setSelectedCategory('')}>
             Show all resources
           </Button>
         </div>
       )}
 
-      <FacilitiesAssistant resources={resources} onApplyFilters={applyAssistantFilters} />
+      <FacilitiesAssistant resources={displayedResources} onApplyFilters={applyAssistantFilters} />
 
       {/* Resource grid */}
       {isLoading ? (
@@ -236,8 +383,8 @@ export default function ResourcesPage() {
             </Card>
           ))}
         </div>
-      ) : resources.length === 0 ? (
-        <Card>
+      ) : displayedResources.length === 0 ? (
+        <Card className="rounded-2xl border-slate-200">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <Building2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-medium">No resources found</h3>
@@ -252,21 +399,26 @@ export default function ResourcesPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {resources.map((resource) => {
+          {displayedResources.map((resource) => {
             const Icon = typeIcons[resource.type] || Building2
             return (
-              <Card key={resource.id} className="group hover:shadow-md transition-shadow">
+              <Card key={resource.id} className="group rounded-2xl border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                        <Icon className="h-5 w-5 text-primary" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50">
+                        <Icon className="h-5 w-5 text-indigo-600" />
                       </div>
                       <div>
-                        <h3 className="font-semibold leading-tight">{resource.name}</h3>
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <h3 className="font-semibold leading-tight text-slate-900">{resource.name}</h3>
+                        <p className="mt-0.5 text-xs uppercase tracking-[0.1em] text-slate-500">
                           {typeLabels[resource.type] || resource.type}
                         </p>
+                        {sortMode === 'SMART_FIT' && (
+                          <p className="mt-1 inline-flex rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                            Best Fit Score: {resource.smartFitScore ?? 0}
+                          </p>
+                        )}
                       </div>
                     </div>
                     {isAdmin && (
@@ -298,12 +450,12 @@ export default function ResourcesPage() {
                   </div>
 
                   {resource.description && (
-                    <p className="text-sm text-muted-foreground mt-3 line-clamp-2">
+                    <p className="mt-3 line-clamp-2 text-sm text-slate-600">
                       {resource.description}
                     </p>
                   )}
 
-                  <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
+                  <div className="mt-4 flex items-center gap-4 text-sm text-slate-600">
                     <div className="flex items-center gap-1">
                       <MapPin className="h-3.5 w-3.5" />
                       {resource.location}
@@ -316,13 +468,13 @@ export default function ResourcesPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between mt-4 pt-3 border-t">
+                  <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3">
                     <Badge variant={resource.status === 'ACTIVE' ? 'success' : 'destructive'}>
                       {resource.status === 'ACTIVE' ? 'Active' : 'Out of Service'}
                     </Badge>
-                    {resource.availabilityStart && resource.availabilityEnd && (
-                      <span className="text-xs text-muted-foreground">
-                        {resource.availabilityStart} - {resource.availabilityEnd}
+                    {resource.availabilityDate && resource.availabilityStart && resource.availabilityEnd && (
+                      <span className="text-xs text-slate-500">
+                        {resource.availabilityDate} • {resource.availabilityStart} - {resource.availabilityEnd}
                       </span>
                     )}
                   </div>
@@ -331,7 +483,7 @@ export default function ResourcesPage() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="mt-3 w-full gap-2"
+                    className="mt-3 w-full gap-2 rounded-xl border-slate-300"
                     onClick={() => handleBookNow(resource)}
                     disabled={resource.status !== 'ACTIVE'}
                   >

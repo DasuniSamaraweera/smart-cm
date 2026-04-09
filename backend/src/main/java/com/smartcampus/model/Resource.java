@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -35,6 +36,8 @@ public class Resource {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    private LocalDate availabilityDate;
 
     private LocalTime availabilityStart;
 
