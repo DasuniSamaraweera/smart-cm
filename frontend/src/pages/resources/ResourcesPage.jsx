@@ -53,6 +53,13 @@ const typeLabels = {
   EQUIPMENT: 'Equipment',
 }
 
+const typeCardStyles = {
+  LECTURE_HALL: 'from-sky-500/15 to-blue-500/10',
+  LAB: 'from-emerald-500/15 to-green-500/10',
+  MEETING_ROOM: 'from-violet-500/15 to-indigo-500/10',
+  EQUIPMENT: 'from-amber-500/15 to-orange-500/10',
+}
+
 const resourceTypes = ['LECTURE_HALL', 'MEETING_ROOM', 'LAB', 'EQUIPMENT']
 
 function parseDateTime(dateValue, timeValue) {
@@ -214,17 +221,18 @@ export default function ResourcesPage() {
   }, {})
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-2">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-cyan-500/10 p-5 shadow-sm">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Facilities & Resources</h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-500">Resource Catalogue</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Facilities & Resources</h1>
+          <p className="mt-1 text-sm text-slate-600">
             Manage campus resources, halls, labs, rooms, and equipment.
           </p>
         </div>
         {isAdmin && (
-          <Button onClick={handleCreate} className="gap-2">
+          <Button onClick={handleCreate} className="gap-2 rounded-xl bg-indigo-600 text-white shadow-sm hover:bg-indigo-700">
             <Plus className="h-4 w-4" />
             Add Resource
           </Button>
@@ -232,8 +240,9 @@ export default function ResourcesPage() {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="rounded-2xl border-indigo-100 bg-white/90 shadow-sm">
         <CardContent className="p-4">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Search And Ranking</p>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -241,11 +250,11 @@ export default function ResourcesPage() {
                 placeholder="Search resources..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
+                className="pl-9 rounded-xl border-slate-200 bg-slate-50"
               />
             </div>
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v === 'ALL' ? '' : v)}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger className="w-full rounded-xl border-slate-200 bg-slate-50 sm:w-[180px]">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -260,13 +269,13 @@ export default function ResourcesPage() {
               value={minCapacity}
               onChange={(e) => setMinCapacity(e.target.value)}
               placeholder="Min capacity"
-              className="w-full sm:w-[140px]"
+              className="w-full rounded-xl border-slate-200 bg-slate-50 sm:w-[140px]"
             />
           </div>
 
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Select value={sortMode} onValueChange={setSortMode}>
-              <SelectTrigger>
+              <SelectTrigger className="rounded-xl border-slate-200 bg-slate-50">
                 <SelectValue placeholder="Sort mode" />
               </SelectTrigger>
               <SelectContent>
@@ -279,6 +288,7 @@ export default function ResourcesPage() {
               value={preferredLocation}
               onChange={(e) => setPreferredLocation(e.target.value)}
               placeholder="Preferred location"
+              className="rounded-xl border-slate-200 bg-slate-50"
             />
 
             <Input
@@ -287,12 +297,14 @@ export default function ResourcesPage() {
               value={desiredCapacity}
               onChange={(e) => setDesiredCapacity(e.target.value)}
               placeholder="Desired capacity"
+              className="rounded-xl border-slate-200 bg-slate-50"
             />
 
             <Input
               type="date"
               value={desiredDate}
               onChange={(e) => setDesiredDate(e.target.value)}
+              className="rounded-xl border-slate-200 bg-slate-50"
             />
 
             <Input
@@ -300,6 +312,7 @@ export default function ResourcesPage() {
               value={desiredStartTime}
               onChange={(e) => setDesiredStartTime(e.target.value)}
               placeholder="Start time"
+              className="rounded-xl border-slate-200 bg-slate-50"
             />
 
             <Input
@@ -307,11 +320,12 @@ export default function ResourcesPage() {
               value={desiredEndTime}
               onChange={(e) => setDesiredEndTime(e.target.value)}
               placeholder="End time"
+              className="rounded-xl border-slate-200 bg-slate-50"
             />
           </div>
 
           {sortMode === 'SMART_FIT' && (
-            <p className="mt-3 text-xs text-muted-foreground">
+            <p className="mt-3 rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2 text-xs text-indigo-700">
               Best Fit uses capacity closeness, location relevance, and availability for the selected date/time.
             </p>
           )}
@@ -326,19 +340,19 @@ export default function ResourcesPage() {
           return (
             <Card
               key={type}
-              className={`cursor-pointer transition-all hover:shadow-md ${
-                isSelected ? 'ring-2 ring-primary border-primary' : ''
+              className={`cursor-pointer rounded-2xl border transition-all hover:-translate-y-0.5 hover:shadow-md ${
+                isSelected ? 'border-indigo-400 ring-2 ring-indigo-300/60 shadow-sm' : 'border-slate-200'
               }`}
               onClick={() => setSelectedCategory(type)}
             >
-              <CardContent className="p-5">
+              <CardContent className={`rounded-2xl bg-gradient-to-br p-5 ${typeCardStyles[type] || 'from-slate-100 to-white'}`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">{typeLabels[type]}</p>
-                    <p className="text-2xl font-semibold mt-1">{resourceCounts[type] || 0}</p>
+                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">{typeLabels[type]}</p>
+                    <p className="mt-1 text-2xl font-semibold text-slate-800">{resourceCounts[type] || 0}</p>
                   </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <Icon className="h-5 w-5 text-primary" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/70 shadow-sm">
+                    <Icon className="h-5 w-5 text-slate-700" />
                   </div>
                 </div>
               </CardContent>
@@ -352,7 +366,7 @@ export default function ResourcesPage() {
           <p className="text-sm text-muted-foreground">
             Showing {typeLabels[selectedCategory]} resources only
           </p>
-          <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedCategory('')}>
+          <Button type="button" variant="outline" size="sm" className="rounded-xl border-slate-300" onClick={() => setSelectedCategory('')}>
             Show all resources
           </Button>
         </div>
@@ -370,7 +384,7 @@ export default function ResourcesPage() {
           ))}
         </div>
       ) : displayedResources.length === 0 ? (
-        <Card>
+        <Card className="rounded-2xl border-slate-200">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <Building2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-medium">No resources found</h3>
@@ -388,20 +402,20 @@ export default function ResourcesPage() {
           {displayedResources.map((resource) => {
             const Icon = typeIcons[resource.type] || Building2
             return (
-              <Card key={resource.id} className="group hover:shadow-md transition-shadow">
+              <Card key={resource.id} className="group rounded-2xl border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                        <Icon className="h-5 w-5 text-primary" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50">
+                        <Icon className="h-5 w-5 text-indigo-600" />
                       </div>
                       <div>
-                        <h3 className="font-semibold leading-tight">{resource.name}</h3>
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <h3 className="font-semibold leading-tight text-slate-900">{resource.name}</h3>
+                        <p className="mt-0.5 text-xs uppercase tracking-[0.1em] text-slate-500">
                           {typeLabels[resource.type] || resource.type}
                         </p>
                         {sortMode === 'SMART_FIT' && (
-                          <p className="text-xs mt-0.5 text-primary font-medium">
+                          <p className="mt-1 inline-flex rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
                             Best Fit Score: {resource.smartFitScore ?? 0}
                           </p>
                         )}
@@ -436,12 +450,12 @@ export default function ResourcesPage() {
                   </div>
 
                   {resource.description && (
-                    <p className="text-sm text-muted-foreground mt-3 line-clamp-2">
+                    <p className="mt-3 line-clamp-2 text-sm text-slate-600">
                       {resource.description}
                     </p>
                   )}
 
-                  <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
+                  <div className="mt-4 flex items-center gap-4 text-sm text-slate-600">
                     <div className="flex items-center gap-1">
                       <MapPin className="h-3.5 w-3.5" />
                       {resource.location}
@@ -454,12 +468,12 @@ export default function ResourcesPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between mt-4 pt-3 border-t">
+                  <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3">
                     <Badge variant={resource.status === 'ACTIVE' ? 'success' : 'destructive'}>
                       {resource.status === 'ACTIVE' ? 'Active' : 'Out of Service'}
                     </Badge>
                     {resource.availabilityDate && resource.availabilityStart && resource.availabilityEnd && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-slate-500">
                         {resource.availabilityDate} • {resource.availabilityStart} - {resource.availabilityEnd}
                       </span>
                     )}
@@ -469,7 +483,7 @@ export default function ResourcesPage() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="mt-3 w-full gap-2"
+                    className="mt-3 w-full gap-2 rounded-xl border-slate-300"
                     onClick={() => handleBookNow(resource)}
                     disabled={resource.status !== 'ACTIVE'}
                   >

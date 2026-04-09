@@ -90,10 +90,11 @@ export default function ResourceFormDialog({ open, onOpenChange, resource }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="sm:max-w-[560px] rounded-2xl border-indigo-100 bg-gradient-to-b from-indigo-50/60 to-white">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit Resource' : 'Add New Resource'}</DialogTitle>
-          <DialogDescription>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-500">Resource Registry</p>
+          <DialogTitle className="text-slate-900">{isEditing ? 'Edit Resource' : 'Add New Resource'}</DialogTitle>
+          <DialogDescription className="text-slate-600">
             {isEditing
               ? 'Update the resource details below.'
               : 'Fill in the details to add a new campus resource.'}
@@ -101,23 +102,23 @@ export default function ResourceFormDialog({ open, onOpenChange, resource }) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 rounded-xl border border-indigo-100 bg-white p-4 shadow-sm">
             <div className="col-span-2">
-              <Label htmlFor="name">Resource Name</Label>
+              <Label htmlFor="name" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Resource Name</Label>
               <Input
                 id="name"
                 value={form.name}
                 onChange={(e) => updateField('name', e.target.value)}
                 placeholder="e.g. Lab Room A3"
                 required
-                className="mt-1.5"
+                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
               />
             </div>
 
             <div>
-              <Label>Type</Label>
+              <Label className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Type</Label>
               <Select value={form.type} onValueChange={(v) => updateField('type', v)} required>
-                <SelectTrigger className="mt-1.5">
+                <SelectTrigger className="mt-1.5 rounded-xl border-slate-200 bg-slate-50">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -130,7 +131,7 @@ export default function ResourceFormDialog({ open, onOpenChange, resource }) {
             </div>
 
             <div>
-              <Label htmlFor="capacity">Capacity</Label>
+              <Label htmlFor="capacity" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Capacity</Label>
               <Input
                 id="capacity"
                 type="number"
@@ -138,72 +139,72 @@ export default function ResourceFormDialog({ open, onOpenChange, resource }) {
                 value={form.capacity}
                 onChange={(e) => updateField('capacity', e.target.value)}
                 placeholder="e.g. 50"
-                className="mt-1.5"
+                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
               />
             </div>
 
             <div className="col-span-2">
-              <Label htmlFor="location">Location</Label>
+              <Label htmlFor="location" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Location</Label>
               <Input
                 id="location"
                 value={form.location}
                 onChange={(e) => updateField('location', e.target.value)}
                 placeholder="e.g. Block A, Floor 3"
                 required
-                className="mt-1.5"
+                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
               />
             </div>
 
             <div className="col-span-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Description</Label>
               <Textarea
                 id="description"
                 value={form.description}
                 onChange={(e) => updateField('description', e.target.value)}
                 placeholder="Describe the resource..."
                 rows={3}
-                className="mt-1.5"
+                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
               />
             </div>
 
             <div className="col-span-2">
-              <Label htmlFor="availabilityDate">Availability Date</Label>
+              <Label htmlFor="availabilityDate" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Availability Date</Label>
               <Input
                 id="availabilityDate"
                 type="date"
                 value={form.availabilityDate}
                 onChange={(e) => updateField('availabilityDate', e.target.value)}
-                className="mt-1.5"
+                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
                 required
               />
             </div>
 
             <div>
-              <Label htmlFor="availabilityStart">Available From</Label>
+              <Label htmlFor="availabilityStart" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Available From</Label>
               <Input
                 id="availabilityStart"
                 type="time"
                 value={form.availabilityStart}
                 onChange={(e) => updateField('availabilityStart', e.target.value)}
-                className="mt-1.5"
+                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
               />
             </div>
 
             <div>
-              <Label htmlFor="availabilityEnd">Available Until</Label>
+              <Label htmlFor="availabilityEnd" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Available Until</Label>
               <Input
                 id="availabilityEnd"
                 type="time"
                 value={form.availabilityEnd}
                 onChange={(e) => updateField('availabilityEnd', e.target.value)}
-                className="mt-1.5"
+                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
               />
             </div>
 
             <div>
-              <Label>Status</Label>
+              <Label className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Status</Label>
               <Select value={form.status} onValueChange={(v) => updateField('status', v)}>
-                <SelectTrigger className="mt-1.5">
+                <SelectTrigger className="mt-1.5 rounded-xl border-slate-200 bg-slate-50">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -215,10 +216,10 @@ export default function ResourceFormDialog({ open, onOpenChange, resource }) {
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" className="rounded-xl border-slate-300" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={mutation.isPending}>
+            <Button type="submit" className="rounded-xl bg-indigo-600 text-white hover:bg-indigo-700" disabled={mutation.isPending}>
               {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isEditing ? 'Update' : 'Create'}
             </Button>
