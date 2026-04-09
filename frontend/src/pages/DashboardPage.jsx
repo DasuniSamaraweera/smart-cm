@@ -78,13 +78,14 @@ export default function DashboardPage() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-2">
       {/* Welcome */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
+      <div className="rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-cyan-500/10 p-5 shadow-sm">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-500">Operations Snapshot</p>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
           Welcome back, {user?.name?.split(' ')[0] || 'User'} 👋
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="mt-1 text-sm text-slate-600">
           Here's an overview of the campus operations today.
         </p>
       </div>
@@ -92,14 +93,14 @@ export default function DashboardPage() {
       {/* Stats grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.title}>
+          <Card key={stat.title} className="rounded-2xl border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">{stat.title}</p>
-                  <p className="text-3xl font-bold mt-1">{stat.value}</p>
+                  <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">{stat.title}</p>
+                  <p className="mt-1 text-3xl font-bold text-slate-900">{stat.value}</p>
                 </div>
-                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.bg}`}>
+                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ring-1 ring-black/5 ${stat.bg}`}>
                   <stat.icon className={`h-6 w-6 ${stat.color}`} />
                 </div>
               </div>
@@ -110,32 +111,32 @@ export default function DashboardPage() {
 
       {/* Quick actions */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg">Recent Bookings</CardTitle>
+            <CardTitle className="text-lg text-slate-900">Recent Bookings</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">No bookings yet. Create your first booking from the Bookings page.</p>
+            <p className="text-sm text-slate-600">No bookings yet. Create your first booking from the Bookings page.</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg">Recent Tickets</CardTitle>
+            <CardTitle className="text-lg text-slate-900">Recent Tickets</CardTitle>
           </CardHeader>
           <CardContent>
             {ticketsLoading ? (
-              <p className="text-sm text-muted-foreground">Loading tickets...</p>
+              <p className="text-sm text-slate-600">Loading tickets...</p>
             ) : recentTickets.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No tickets yet. Report an issue from the Tickets page.</p>
+              <p className="text-sm text-slate-600">No tickets yet. Report an issue from the Tickets page.</p>
             ) : (
               <div className="space-y-3">
                 {recentTickets.map((ticket) => (
-                  <div key={ticket.id} className="flex items-center justify-between gap-3 rounded-md border p-3">
+                  <div key={ticket.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
                     <div className="min-w-0">
-                      <Link to={`/tickets/${ticket.id}`} className="block truncate text-sm font-medium hover:underline">
+                      <Link to={`/tickets/${ticket.id}`} className="block truncate text-sm font-medium text-slate-900 hover:underline">
                         {ticket.title}
                       </Link>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-slate-500">
                         #{ticket.id} • {new Date(ticket.createdAt).toLocaleDateString()}
                       </p>
                     </div>
