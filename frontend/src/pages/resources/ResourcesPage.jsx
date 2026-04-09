@@ -55,6 +55,64 @@ const typeLabels = {
 
 const resourceTypes = ['LECTURE_HALL', 'MEETING_ROOM', 'LAB', 'EQUIPMENT']
 
+function parseDateTime(dateValue, timeValue) {
+  if (!dateValue || !timeValue) return null
+  const parsed = new Date(`${dateValue}T${timeValue}`)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+function computeLocationRelevance(resourceLocation, preferredLocation) {
+  if (!preferredLocation?.trim()) return 0.5
+  if (!resourceLocation?.trim()) return 0
+
+  const resourceText = resourceLocation.toLowerCase()
+  const preferredText = preferredLocation.toLowerCase().trim()
+
+  if (resourceText.includes(preferredText) || preferredText.includes(resourceText)) {
+    return 1
+  }
+
+  const preferredTokens = preferredText.split(/\s+/).filter(Boolean)
+  if (preferredTokens.length === 0) return 0.5
+
+  const matched = preferredTokens.filter((token) => resourceText.includes(token)).length
+  return matched / preferredTokens.length
+}
+
+function computeCapacityFit(resourceCapacity, desiredCapacity) {
+  if (!desiredCapacity) return 0.5
+  if (!resourceCapacity || resourceCapacity <= 0) return 0
+
+  const gap = Math.abs(resourceCapacity - desiredCapacity)
+  const normalizedGap = Math.min(gap / Math.max(desiredCapacity, 1), 1)
+  return 1 - normalizedGap
+}
+
+function computeAvailabilityFit(resource, desiredStart, desiredEnd) {
+  if (!desiredStart || !desiredEnd) return 0.5
+
+  if (resource.status !== 'ACTIVE') return 0
+  if (!resource.availabilityDate || !resource.availabilityStart || !resource.availabilityEnd) return 0
+
+  const availableStart = new Date(`${resource.availabilityDate}T${resource.availabilityStart}`)
+  const availableEnd = new Date(`${resource.availabilityDate}T${resource.availabilityEnd}`)
+
+  if (Number.isNaN(availableStart.getTime()) || Number.isNaN(availableEnd.getTime())) return 0
+  if (desiredEnd <= desiredStart) return 0
+
+  return desiredStart >= availableStart && desiredEnd <= availableEnd ? 1 : 0
+}
+
+function getSmartFitScore(resource, preferences) {
+  const capacity = computeCapacityFit(resource.capacity, preferences.desiredCapacity)
+  const location = computeLocationRelevance(resource.location, preferences.preferredLocation)
+  const availability = computeAvailabilityFit(resource, preferences.desiredStart, preferences.desiredEnd)
+
+  const score = (capacity * 0.35) + (location * 0.25) + (availability * 0.4)
+
+  return Math.round(score * 100)
+}
+
 export default function ResourcesPage() {
   const { isAdmin } = useAuth()
   const navigate = useNavigate()
@@ -63,6 +121,12 @@ export default function ResourcesPage() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [minCapacity, setMinCapacity] = useState('')
+  const [sortMode, setSortMode] = useState('DEFAULT')
+  const [preferredLocation, setPreferredLocation] = useState('')
+  const [desiredCapacity, setDesiredCapacity] = useState('')
+  const [desiredDate, setDesiredDate] = useState('')
+  const [desiredStartTime, setDesiredStartTime] = useState('')
+  const [desiredEndTime, setDesiredEndTime] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingResource, setEditingResource] = useState(null)
 
@@ -81,6 +145,23 @@ export default function ResourcesPage() {
   const resources = selectedCategory
     ? allResources.filter((resource) => resource.type === selectedCategory)
     : allResources
+
+  const desiredStart = parseDateTime(desiredDate, desiredStartTime)
+  const desiredEnd = parseDateTime(desiredDate, desiredEndTime)
+
+  const displayedResources = sortMode === 'SMART_FIT'
+    ? [...resources]
+      .map((resource) => ({
+        ...resource,
+        smartFitScore: getSmartFitScore(resource, {
+          desiredCapacity: desiredCapacity ? Number(desiredCapacity) : null,
+          preferredLocation,
+          desiredStart,
+          desiredEnd,
+        }),
+      }))
+      .sort((a, b) => b.smartFitScore - a.smartFitScore)
+    : resources
 
   const applyAssistantFilters = (patch) => {
     if (Object.prototype.hasOwnProperty.call(patch, 'type')) {
@@ -182,6 +263,58 @@ export default function ResourcesPage() {
               className="w-full sm:w-[140px]"
             />
           </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <Select value={sortMode} onValueChange={setSortMode}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sort mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="DEFAULT">Default order</SelectItem>
+                <SelectItem value="SMART_FIT">Best Fit (Smart Sort)</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Input
+              value={preferredLocation}
+              onChange={(e) => setPreferredLocation(e.target.value)}
+              placeholder="Preferred location"
+            />
+
+            <Input
+              type="number"
+              min="1"
+              value={desiredCapacity}
+              onChange={(e) => setDesiredCapacity(e.target.value)}
+              placeholder="Desired capacity"
+            />
+
+            <Input
+              type="date"
+              value={desiredDate}
+              onChange={(e) => setDesiredDate(e.target.value)}
+            />
+
+            <Input
+              type="time"
+              value={desiredStartTime}
+              onChange={(e) => setDesiredStartTime(e.target.value)}
+              placeholder="Start time"
+            />
+
+            <Input
+              type="time"
+              value={desiredEndTime}
+              onChange={(e) => setDesiredEndTime(e.target.value)}
+              placeholder="End time"
+            />
+          </div>
+
+          {sortMode === 'SMART_FIT' && (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Best Fit uses capacity closeness, location relevance, and availability for the selected date/time.
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -225,7 +358,7 @@ export default function ResourcesPage() {
         </div>
       )}
 
-      <FacilitiesAssistant resources={resources} onApplyFilters={applyAssistantFilters} />
+      <FacilitiesAssistant resources={displayedResources} onApplyFilters={applyAssistantFilters} />
 
       {/* Resource grid */}
       {isLoading ? (
@@ -236,7 +369,7 @@ export default function ResourcesPage() {
             </Card>
           ))}
         </div>
-      ) : resources.length === 0 ? (
+      ) : displayedResources.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
             <Building2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
@@ -252,7 +385,7 @@ export default function ResourcesPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {resources.map((resource) => {
+          {displayedResources.map((resource) => {
             const Icon = typeIcons[resource.type] || Building2
             return (
               <Card key={resource.id} className="group hover:shadow-md transition-shadow">
@@ -267,6 +400,11 @@ export default function ResourcesPage() {
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {typeLabels[resource.type] || resource.type}
                         </p>
+                        {sortMode === 'SMART_FIT' && (
+                          <p className="text-xs mt-0.5 text-primary font-medium">
+                            Best Fit Score: {resource.smartFitScore ?? 0}
+                          </p>
+                        )}
                       </div>
                     </div>
                     {isAdmin && (
