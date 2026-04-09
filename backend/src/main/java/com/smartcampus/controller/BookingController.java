@@ -39,6 +39,17 @@ public class BookingController {
     }
 
     /**
+    * GET /api/bookings/{id}
+    * Get a single booking by ID.
+    * Owner or Admin only.
+    */
+    @GetMapping("/{id}")
+    public ResponseEntity<BookingResponse> getBookingById(@PathVariable Long id) {
+        BookingResponse booking = bookingService.getBookingById(id, currentUser.get());
+        return ResponseEntity.ok(booking);
+    }
+
+    /**
      * POST /api/bookings
      * Any authenticated user can create a booking request.
      */

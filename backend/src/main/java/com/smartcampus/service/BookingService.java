@@ -209,4 +209,20 @@ public class BookingService {
                 .createdAt(b.getCreatedAt())
                 .build();
     }
+
+    public BookingResponse getBookingById(Long id, User currentUser) {
+    Booking booking = bookingRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Booking", id));
+
+    boolean isAdmin = currentUser.getRole().name().equals("ADMIN");
+    boolean isOwner = booking.getUser().getId().equals(currentUser.getId());
+
+    if (!isAdmin && !isOwner) {
+        throw new ForbiddenException("You can only view your own bookings");
+    }
+
+    return toResponse(booking);
+}
+
+
 }

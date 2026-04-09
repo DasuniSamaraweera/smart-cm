@@ -15,6 +15,21 @@ const statusVariant = {
   REJECTED: 'destructive',
 }
 
+const BOOKING_STATUS_STYLES = {
+  PENDING:   'bg-amber-100 text-amber-800',
+  APPROVED:  'bg-green-100 text-green-800',
+  REJECTED:  'bg-red-100 text-red-800',
+  CANCELLED: 'bg-gray-100 text-gray-600',
+}
+
+function BookingStatusBadge({ status }) {
+  return (
+    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${BOOKING_STATUS_STYLES[status] ?? 'bg-gray-100 text-gray-600'}`}>
+      {status}
+    </span>
+  )
+}
+
 export default function DashboardPage() {
   const { user } = useAuth()
   const isRegularUser = user?.role === 'USER'
@@ -33,15 +48,24 @@ export default function DashboardPage() {
         .then((res) => res.data),
   })
 
-  const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
-    queryKey: ['dashboard-bookings-availability'],
-    enabled: user?.role === 'ADMIN',
+  // Fixed: fetch bookings for ALL users, not just ADMIN
+  const { data: bookingsData = [], isLoading: bookingsLoading } = useQuery({
+    queryKey: ['dashboard-bookings', user?.id],
+    enabled: !!user,
     queryFn: () => bookingApi.getAll().then((res) => res.data),
   })
+
+  const bookings = Array.isArray(bookingsData) ? bookingsData : []
 
   const activeResources = resources.filter((r) => r.status === 'ACTIVE').length
   const totalResources = resources.length
   const openTickets = tickets.filter((ticket) => ticket.status === 'OPEN').length
+
+  // Get 5 most recent bookings
+  const recentBookings = [...bookings]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5)
+
   const recentTickets = [...tickets]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5)
@@ -70,7 +94,7 @@ export default function DashboardPage() {
     },
     {
       title: 'Bookings',
-      value: 0,
+      value: bookings.length,
       icon: TrendingUp,
       color: 'text-violet-600',
       bg: 'bg-violet-100',
@@ -108,16 +132,52 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Quick actions */}
+      {/* Recent activity */}
       <div className="grid gap-4 md:grid-cols-2">
+
+        {/* Recent Bookings - now fully connected */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Recent Bookings</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">No bookings yet. Create your first booking from the Bookings page.</p>
+            {bookingsLoading ? (
+              <p className="text-sm text-muted-foreground">Loading bookings...</p>
+            ) : recentBookings.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No bookings yet.{' '}
+                <Link to="/bookings" className="underline hover:text-foreground">
+                  Create your first booking
+                </Link>
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {recentBookings.map((booking) => (
+                  <div
+                    key={booking.id}
+                    className="flex items-center justify-between gap-3 rounded-md border p-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">
+                        {booking.resource?.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(booking.startTime).toLocaleDateString('en-GB', {
+                          day: '2-digit', month: 'short', year: 'numeric',
+                        })}
+                        {' · '}
+                        {booking.purpose}
+                      </p>
+                    </div>
+                    <BookingStatusBadge status={booking.status} />
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* Recent Tickets */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Recent Tickets</CardTitle>
@@ -126,20 +186,30 @@ export default function DashboardPage() {
             {ticketsLoading ? (
               <p className="text-sm text-muted-foreground">Loading tickets...</p>
             ) : recentTickets.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No tickets yet. Report an issue from the Tickets page.</p>
+              <p className="text-sm text-muted-foreground">
+                No tickets yet. Report an issue from the Tickets page.
+              </p>
             ) : (
               <div className="space-y-3">
                 {recentTickets.map((ticket) => (
-                  <div key={ticket.id} className="flex items-center justify-between gap-3 rounded-md border p-3">
+                  <div
+                    key={ticket.id}
+                    className="flex items-center justify-between gap-3 rounded-md border p-3"
+                  >
                     <div className="min-w-0">
-                      <Link to={`/tickets/${ticket.id}`} className="block truncate text-sm font-medium hover:underline">
+                      <Link
+                        to={`/tickets/${ticket.id}`}
+                        className="block truncate text-sm font-medium hover:underline"
+                      >
                         {ticket.title}
                       </Link>
                       <p className="text-xs text-muted-foreground">
                         #{ticket.id} • {new Date(ticket.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <Badge variant={statusVariant[ticket.status] || 'secondary'}>{ticket.status}</Badge>
+                    <Badge variant={statusVariant[ticket.status] || 'secondary'}>
+                      {ticket.status}
+                    </Badge>
                   </div>
                 ))}
               </div>
@@ -151,7 +221,7 @@ export default function DashboardPage() {
       {user?.role === 'ADMIN' && (
         <ResourceAvailabilityCalendar
           resources={resources}
-          bookings={Array.isArray(bookings) ? bookings : []}
+          bookings={bookings}
           isLoading={bookingsLoading}
         />
       )}
