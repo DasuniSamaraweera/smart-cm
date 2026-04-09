@@ -12,8 +12,8 @@ import { useAuth } from '@/context/AuthContext'
 const statusVariant = {
   OPEN: 'default',
   IN_PROGRESS: 'warning',
-  RESOLVED: 'secondary',
-  CLOSED: 'outline',
+  RESOLVED: 'success',
+  CLOSED: 'closed',
   REJECTED: 'destructive',
 }
 
