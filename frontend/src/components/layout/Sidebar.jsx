@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
   Building2,
@@ -28,25 +28,24 @@ const adminItems = [
 
 export default function Sidebar({ collapsed, onToggle }) {
   const { isAdmin } = useAuth()
-  const location = useLocation()
 
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 h-screen bg-white border-r border-sidebar-border transition-all duration-300 flex flex-col',
+        'fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-indigo-100 bg-gradient-to-b from-indigo-600 via-indigo-600 to-violet-600 text-indigo-50 shadow-xl transition-all duration-300',
         collapsed ? 'w-[68px]' : 'w-[260px]'
       )}
     >
       {/* Logo */}
-      <div className="flex items-center h-16 px-4 border-b border-sidebar-border">
+      <div className="flex h-16 items-center border-b border-white/15 px-4">
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white shadow-sm backdrop-blur-sm">
             <GraduationCap className="h-5 w-5" />
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-sm font-bold text-foreground leading-tight">Smart Campus</span>
-              <span className="text-[10px] text-muted-foreground leading-tight">Operations Hub</span>
+              <span className="text-sm font-bold leading-tight text-white">Smart Campus</span>
+              <span className="text-[10px] leading-tight text-indigo-100/80">Operations Hub</span>
             </div>
           )}
         </div>
@@ -55,7 +54,7 @@ export default function Sidebar({ collapsed, onToggle }) {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4 px-3">
         {!collapsed && (
-          <p className="px-3 mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-100/75">
             Menu
           </p>
         )}
@@ -65,14 +64,14 @@ export default function Sidebar({ collapsed, onToggle }) {
               {({ isActive }) => (
                 <div
                   className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+                    'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
                     isActive
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                      ? 'bg-white text-indigo-700 shadow-sm'
+                      : 'text-indigo-100/85 hover:bg-white/15 hover:text-white',
                     collapsed && 'justify-center px-2'
                   )}
                 >
-                  <item.icon className={cn('h-5 w-5 shrink-0', isActive && 'text-primary')} />
+                  <item.icon className={cn('h-5 w-5 shrink-0', isActive && 'text-indigo-700')} />
                   {!collapsed && <span>{item.label}</span>}
                 </div>
               )}
@@ -82,9 +81,9 @@ export default function Sidebar({ collapsed, onToggle }) {
 
         {isAdmin && (
           <>
-            <Separator className="my-4" />
+            <Separator className="my-4 bg-white/15" />
             {!collapsed && (
-              <p className="px-3 mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-100/75">
                 Admin
               </p>
             )}
@@ -94,14 +93,14 @@ export default function Sidebar({ collapsed, onToggle }) {
                   {({ isActive }) => (
                     <div
                       className={cn(
-                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+                        'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
                         isActive
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                          ? 'bg-white text-indigo-700 shadow-sm'
+                          : 'text-indigo-100/85 hover:bg-white/15 hover:text-white',
                         collapsed && 'justify-center px-2'
                       )}
                     >
-                      <item.icon className={cn('h-5 w-5 shrink-0', isActive && 'text-primary')} />
+                      <item.icon className={cn('h-5 w-5 shrink-0', isActive && 'text-indigo-700')} />
                       {!collapsed && <span>{item.label}</span>}
                     </div>
                   )}
@@ -113,12 +112,15 @@ export default function Sidebar({ collapsed, onToggle }) {
       </nav>
 
       {/* Collapse toggle */}
-      <div className="border-t border-sidebar-border p-3">
+      <div className="border-t border-white/15 p-3">
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           onClick={onToggle}
-          className={cn('w-full', collapsed ? 'justify-center' : 'justify-start')}
+          className={cn(
+            'w-full rounded-xl border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white',
+            collapsed ? 'justify-center' : 'justify-start'
+          )}
         >
           <ChevronLeft
             className={cn('h-4 w-4 transition-transform', collapsed && 'rotate-180')}

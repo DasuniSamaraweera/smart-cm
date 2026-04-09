@@ -141,72 +141,91 @@ export default function ResourceAvailabilityCalendar({ resources = [], bookings 
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <div>
-          <CardTitle className="text-lg">Resource Availability Calendar</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Daily availability based on active resources and approved bookings.
-          </p>
+    <Card className="border-slate-200 bg-white shadow-sm">
+      <CardHeader className="space-y-3">
+        <div className="flex flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle className="text-lg text-slate-900">Resource Availability Calendar</CardTitle>
+            <p className="mt-1 text-sm text-slate-600">
+              Daily availability based on active resources and approved bookings.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="outline" size="icon" className="h-8 w-8 rounded-md border-slate-300" onClick={goToPreviousMonth}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <p className="w-44 text-center text-sm font-semibold text-slate-800">
+              {visibleMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+            </p>
+            <Button type="button" variant="outline" size="icon" className="h-8 w-8 rounded-md border-slate-300" onClick={goToNextMonth}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button type="button" variant="outline" size="icon" onClick={goToPreviousMonth}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <p className="w-40 text-center text-sm font-medium">
-            {visibleMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
-          </p>
-          <Button type="button" variant="outline" size="icon" onClick={goToNextMonth}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+
+        <div className="flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+          <span className="font-medium">Calendar View</span>
+          <div className="flex items-center gap-1">
+            <span className="rounded bg-white px-2 py-0.5 text-slate-800 shadow-sm">Month</span>
+            <span className="rounded px-2 py-0.5">Week</span>
+            <span className="rounded px-2 py-0.5">Day</span>
+          </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-5">
-        <div className="grid grid-cols-7 gap-2">
-          {WEEK_DAYS.map((day) => (
-            <p key={day} className="text-center text-xs font-medium uppercase text-muted-foreground">
-              {day}
-            </p>
-          ))}
-
-          {monthCells.map(({ date, inCurrentMonth }) => {
-            const { availableCount, resourcesForDate } = getAvailabilityForDate(date)
-            const isSelected = isSameDay(date, selectedDate)
-            const isToday = isSameDay(date, new Date())
-
-            let availabilityTone = 'text-emerald-600'
-            if (availableCount === 0 && activeResources.length > 0) {
-              availabilityTone = 'text-red-600'
-            } else if (availableCount < activeResources.length) {
-              availabilityTone = 'text-amber-600'
-            }
-
-            return (
-              <button
-                type="button"
-                key={date.toISOString()}
-                onClick={() => setSelectedDate(date)}
-                className={cn(
-                  'rounded-md border p-2 text-left transition-colors',
-                  !inCurrentMonth && 'opacity-45',
-                  isSelected && 'border-primary bg-primary/5',
-                  !isSelected && 'hover:bg-muted/60',
-                )}
+        <div className="overflow-hidden rounded-md border border-slate-200">
+          <div className="grid grid-cols-7 bg-slate-50">
+            {WEEK_DAYS.map((day) => (
+              <p
+                key={day}
+                className="border-b border-r border-slate-200 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 last:border-r-0"
               >
-                <p className={cn('text-sm font-semibold', isToday && 'text-primary')}>{date.getDate()}</p>
-                <p className={cn('mt-1 text-[11px]', availabilityTone)}>
-                  {activeResources.length === 0 ? 'No active resources' : `${availableCount}/${resourcesForDate.length} free`}
-                </p>
-              </button>
-            )
-          })}
+                {day}
+              </p>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7">
+            {monthCells.map(({ date, inCurrentMonth }) => {
+              const { availableCount, resourcesForDate } = getAvailabilityForDate(date)
+              const isSelected = isSameDay(date, selectedDate)
+              const isToday = isSameDay(date, new Date())
+
+              let availabilityTone = 'text-emerald-600'
+              if (availableCount === 0 && activeResources.length > 0) {
+                availabilityTone = 'text-red-600'
+              } else if (availableCount < activeResources.length) {
+                availabilityTone = 'text-amber-600'
+              }
+
+              return (
+                <button
+                  type="button"
+                  key={date.toISOString()}
+                  onClick={() => setSelectedDate(date)}
+                  className={cn(
+                    'h-16 border-b border-r border-slate-200 p-1.5 text-left transition-colors sm:h-20',
+                    'flex flex-col justify-between',
+                    !inCurrentMonth && 'bg-slate-50 text-slate-400',
+                    isSelected && 'bg-amber-50 ring-1 ring-inset ring-amber-300',
+                    !isSelected && 'hover:bg-slate-50/80',
+                  )}
+                >
+                  <p className={cn('text-xs font-semibold sm:text-sm', isToday && 'text-indigo-600')}>{date.getDate()}</p>
+                  <p className={cn('text-[9px] leading-tight sm:text-[10px]', availabilityTone, 'truncate')}>
+                    {activeResources.length === 0 ? 'No active resources' : `${availableCount}/${resourcesForDate.length} free`}
+                  </p>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
-        <div className="rounded-lg border p-4">
+        <div className="rounded-lg border border-slate-200 bg-white p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="font-medium">
+              <h3 className="font-medium text-slate-900">
                 {selectedDate.toLocaleDateString(undefined, {
                   weekday: 'long',
                   day: 'numeric',
@@ -214,7 +233,7 @@ export default function ResourceAvailabilityCalendar({ resources = [], bookings 
                   year: 'numeric',
                 })}
               </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-sm text-slate-600">
                 {activeResources.length === 0
                   ? 'No active resources configured.'
                   : `${selectedDay.availableCount} of ${selectedDay.resourcesForDate.length} resources available for this date`}

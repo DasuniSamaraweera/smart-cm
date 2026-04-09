@@ -118,11 +118,11 @@ export default function FacilitiesAssistant({ resources, onApplyFilters }) {
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {isOpen && (
-        <Card className="w-[calc(100vw-2rem)] max-w-md shadow-xl mb-3">
+        <Card className="mb-3 w-[calc(100vw-2rem)] max-w-md rounded-2xl border-indigo-100 bg-gradient-to-b from-indigo-50/70 to-white shadow-xl">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <CardTitle className="text-base flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-base text-slate-900">
                   <Bot className="h-4 w-4" />
                   Facilities Assistant
                 </CardTitle>
@@ -140,20 +140,21 @@ export default function FacilitiesAssistant({ resources, onApplyFilters }) {
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="rounded-md border bg-muted/20 p-3 h-56 overflow-y-auto space-y-3">
+            <div className="h-56 space-y-3 overflow-y-auto rounded-xl border border-indigo-100 bg-white p-3">
               {currentQuestion ? (
                 <div className="space-y-3">
                   <div className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground">You</p>
+                    <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">You</p>
                     <div className="text-sm">{currentQuestion}</div>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">Assistant</p>
+                    <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Assistant</p>
                     <div className="text-sm whitespace-pre-line">{currentReply.text}</div>
                     {currentReply.filterPatch && (
                       <Button
                         variant="outline"
                         size="sm"
+                        className="rounded-xl border-slate-300"
                         onClick={() => onApplyFilters(currentReply.filterPatch)}
                       >
                         Apply these filters
@@ -163,7 +164,7 @@ export default function FacilitiesAssistant({ resources, onApplyFilters }) {
                 </div>
               ) : (
                 <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">Assistant</p>
+                  <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Assistant</p>
                   <div className="text-sm whitespace-pre-line">{currentReply.text}</div>
                 </div>
               )}
@@ -175,7 +176,7 @@ export default function FacilitiesAssistant({ resources, onApplyFilters }) {
                   key={chip}
                   variant="outline"
                   size="sm"
-                  className="h-8"
+                  className="h-8 rounded-xl border-slate-300 bg-white"
                   onClick={() => sendMessage(chip)}
                 >
                   <MessageCircle className="h-3.5 w-3.5 mr-1" />
@@ -195,8 +196,9 @@ export default function FacilitiesAssistant({ resources, onApplyFilters }) {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Ask about facilities (type, status, capacity, location)"
+                className="rounded-xl border-slate-200 bg-slate-50"
               />
-              <Button type="submit" size="icon" aria-label="Send assistant message">
+              <Button type="submit" size="icon" className="rounded-xl bg-indigo-600 text-white hover:bg-indigo-700" aria-label="Send assistant message">
                 <Send className="h-4 w-4" />
               </Button>
             </form>
@@ -207,7 +209,7 @@ export default function FacilitiesAssistant({ resources, onApplyFilters }) {
       <Button
         type="button"
         size="icon"
-        className="h-12 w-12 rounded-full shadow-lg"
+        className="h-12 w-12 rounded-2xl bg-indigo-600 text-white shadow-lg hover:bg-indigo-700"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label="Open facilities assistant"
       >
