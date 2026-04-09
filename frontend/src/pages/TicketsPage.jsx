@@ -171,7 +171,7 @@ export default function TicketsPage() {
                   {isAdmin && <p>Assigned: {ticket.assignedTo?.name || 'Unassigned'}</p>}
                 </div>
                 <Button
-                  variant="outline"
+                  variant={isAdmin || isRegularUser || isTechnician ? 'default' : 'outline'}
                   size="sm"
                   className="w-full"
                   onClick={(e) => {
