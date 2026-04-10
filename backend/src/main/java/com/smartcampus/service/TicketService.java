@@ -114,11 +114,11 @@ public class TicketService {
 
     @Transactional(readOnly = true)
         public List<TicketSummaryResponse> getTickets(TicketStatus status,
-                              TicketPriority priority,
-                              Long reporterId,
-                              Long assignedToId,
-                              int page,
-                              int size) {
+                            TicketPriority priority,
+                            Long reporterId,
+                            Long assignedToId,
+                            int page,
+                            int size) {
         User user = requireUser();
         Pageable pageable = buildPageable(page, size);
 
