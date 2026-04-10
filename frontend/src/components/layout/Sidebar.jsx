@@ -31,8 +31,13 @@ const adminItems = [
   { to: '/admin/ticket-analysis', icon: PieChart, label: 'Ticket Analysis' },
 ]
 
+const technicianItems = [
+  { to: '/technician/ticket-analysis', icon: PieChart, label: 'Ticket Analysis' },
+]
+
 export default function Sidebar({ collapsed, onToggle }) {
-  const { isAdmin } = useAuth()
+  const { isAdmin, user } = useAuth()
+  const isTechnician = user?.role === 'TECHNICIAN'
   
   const { data: unreadData } = useQuery({
     queryKey: ['notifications-unread-count'],
@@ -121,6 +126,37 @@ export default function Sidebar({ collapsed, onToggle }) {
                         isActive
                           ? 'bg-white text-indigo-700 shadow-sm'
                           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                        collapsed && 'justify-center px-2'
+                      )}
+                    >
+                      <item.icon className={cn('h-5 w-5 shrink-0', isActive && 'text-indigo-700')} />
+                      {!collapsed && <span>{item.label}</span>}
+                    </div>
+                  )}
+                </NavLink>
+              ))}
+            </div>
+          </>
+        )}
+
+        {isTechnician && (
+          <>
+            <Separator className="my-4 bg-white/15" />
+            {!collapsed && (
+              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-100/75">
+                Technician
+              </p>
+            )}
+            <div className="space-y-1">
+              {technicianItems.map((item) => (
+                <NavLink key={item.to} to={item.to}>
+                  {({ isActive }) => (
+                    <div
+                      className={cn(
+                        'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
+                        isActive
+                          ? 'bg-white text-indigo-700 shadow-sm'
+                          : 'text-indigo-100/85 hover:bg-white/15 hover:text-white',
                         collapsed && 'justify-center px-2'
                       )}
                     >
