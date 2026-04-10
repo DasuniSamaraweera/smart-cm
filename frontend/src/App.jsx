@@ -12,6 +12,7 @@ import CreateTicket from '@/pages/tickets/CreateTicket'
 import TicketDetails from '@/pages/tickets/TicketDetails'
 import NotificationsPage from '@/pages/NotificationsPage'
 import UserManagementPage from '@/pages/UserManagementPage'
+import TicketAnalysisPage from '@/pages/TicketAnalysisPage'
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/tickets/:id" element={<TicketDetails />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/admin/users" element={<UserManagementPage />} />
+        <Route path="/admin/ticket-analysis" element={<TicketAnalysisPage />} />
       </Route>
 
       {/* Redirects */}
