@@ -54,7 +54,7 @@ const priorityLabels = {
 const priorityColors = {
   LOW: '#22c55e',
   MEDIUM: '#f59e0b',
-  HIGH: '#fb923c',
+  HIGH: '#8b5cf6',
   CRITICAL: '#dc2626',
 }
 
