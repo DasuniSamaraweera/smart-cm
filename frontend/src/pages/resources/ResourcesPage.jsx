@@ -9,6 +9,8 @@ import {
   Building2,
   MapPin,
   Users,
+  CalendarDays,
+  Clock3,
   MoreHorizontal,
   Pencil,
   Trash2,
@@ -118,6 +120,36 @@ function getSmartFitScore(resource, preferences) {
   const score = (capacity * 0.35) + (location * 0.25) + (availability * 0.4)
 
   return Math.round(score * 100)
+}
+
+function formatDateLabel(dateText) {
+  if (!dateText) return 'Not set'
+  const parsed = new Date(`${dateText}T00:00:00`)
+  if (Number.isNaN(parsed.getTime())) return dateText
+
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(parsed)
+}
+
+function formatTimeLabel(timeText) {
+  if (!timeText) return 'Not set'
+  const [hoursRaw, minutesRaw] = String(timeText).split(':')
+  const hours = Number(hoursRaw)
+  const minutes = Number(minutesRaw)
+
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) return timeText
+
+  const date = new Date()
+  date.setHours(hours, minutes, 0, 0)
+
+  return new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date)
 }
 
 export default function ResourcesPage() {
@@ -300,28 +332,50 @@ export default function ResourcesPage() {
               className="rounded-xl border-slate-200 bg-slate-50"
             />
 
-            <Input
-              type="date"
-              value={desiredDate}
-              onChange={(e) => setDesiredDate(e.target.value)}
-              className="rounded-xl border-slate-200 bg-slate-50"
-            />
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">Desired Date</p>
+              <Input
+                type="date"
+                value={desiredDate}
+                onChange={(e) => setDesiredDate(e.target.value)}
+                className="rounded-xl border-slate-200 bg-slate-50"
+              />
+            </div>
 
-            <Input
-              type="time"
-              value={desiredStartTime}
-              onChange={(e) => setDesiredStartTime(e.target.value)}
-              placeholder="Start time"
-              className="rounded-xl border-slate-200 bg-slate-50"
-            />
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">Start Time</p>
+              <Input
+                type="time"
+                value={desiredStartTime}
+                onChange={(e) => setDesiredStartTime(e.target.value)}
+                className="rounded-xl border-slate-200 bg-slate-50"
+              />
+            </div>
 
-            <Input
-              type="time"
-              value={desiredEndTime}
-              onChange={(e) => setDesiredEndTime(e.target.value)}
-              placeholder="End time"
-              className="rounded-xl border-slate-200 bg-slate-50"
-            />
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">End Time</p>
+              <Input
+                type="time"
+                value={desiredEndTime}
+                onChange={(e) => setDesiredEndTime(e.target.value)}
+                className="rounded-xl border-slate-200 bg-slate-50"
+              />
+            </div>
+          </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">Selected Date</p>
+              <p className="mt-1 text-sm font-medium text-slate-800">{formatDateLabel(desiredDate)}</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">From</p>
+              <p className="mt-1 text-sm font-medium text-slate-800">{formatTimeLabel(desiredStartTime)}</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">To</p>
+              <p className="mt-1 text-sm font-medium text-slate-800">{formatTimeLabel(desiredEndTime)}</p>
+            </div>
           </div>
 
           {sortMode === 'SMART_FIT' && (
@@ -483,15 +537,29 @@ export default function ResourcesPage() {
                     )}
                   </div>
 
+                  <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">Availability</p>
+                    <div className="mt-2 space-y-1.5 text-sm text-slate-700">
+                      <div className="flex items-center gap-2">
+                        <CalendarDays className="h-3.5 w-3.5 text-slate-500" />
+                        <span>{formatDateLabel(resource.availabilityDate)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock3 className="h-3.5 w-3.5 text-slate-500" />
+                        <span>
+                          {resource.availabilityStart && resource.availabilityEnd
+                            ? `${formatTimeLabel(resource.availabilityStart)} - ${formatTimeLabel(resource.availabilityEnd)}`
+                            : 'Not set'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3">
                     <Badge variant={resource.status === 'ACTIVE' ? 'success' : 'destructive'}>
                       {resource.status === 'ACTIVE' ? 'Active' : 'Out of Service'}
                     </Badge>
-                    {resource.availabilityDate && resource.availabilityStart && resource.availabilityEnd && (
-                      <span className="text-xs text-slate-500">
-                        {resource.availabilityDate} • {resource.availabilityStart} - {resource.availabilityEnd}
-                      </span>
-                    )}
+                    <span className="text-xs font-medium text-slate-500">{typeLabels[resource.type] || resource.type}</span>
                   </div>
 
                   <Button
