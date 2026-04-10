@@ -11,8 +11,8 @@ A full-stack campus management platform for facilities, bookings, incident ticke
 | Member | Module | Endpoints | Members
 |--------|--------|-----------|-----------|
 | Member 1 (Leader) | Module A – Facilities & Assets Catalogue | `/api/resources/**` | Dasuni
-| Member 2 | Module B – Booking Management | `/api/bookings/**` | Ashi
-| Member 3 | Module C – Maintenance & Incident Ticketing | `/api/tickets/**` | Imalsha
+| Member 2 | Module B – Booking Management | `/api/bookings/**` | Imalsha
+| Member 3 | Module C – Maintenance & Incident Ticketing | `/api/tickets/**` | Ashinshani
 | Member 4 | Module D – Notifications + Module E – Auth/OAuth | `/api/notifications/**`, `/api/auth/**` | Ush
 
 ---
@@ -295,9 +295,5 @@ main
 | `frontend/src/main.jsx` | App providers (Router, QueryClient, Auth, Toaster) |
 | `frontend/src/index.css` | Theme colors (CSS variables) |
 
-## Ticketing section
 
----
-
-## Incident Ticketing
 
