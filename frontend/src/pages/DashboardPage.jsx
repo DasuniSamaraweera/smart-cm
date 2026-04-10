@@ -17,6 +17,21 @@ const statusVariant = {
   REJECTED: 'destructive',
 }
 
+const BOOKING_STATUS_STYLES = {
+  PENDING:  'bg-amber-100 text-amber-800',
+  APPROVED: 'bg-green-100 text-green-800',
+  REJECTED: 'bg-red-100 text-red-800',
+  CANCELLED:'bg-gray-100 text-gray-600',
+}
+
+function BookingStatusBadge({ status }) {
+  return (
+    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${BOOKING_STATUS_STYLES[status] ?? 'bg-gray-100 text-gray-600'}`}>
+      {status}
+    </span>
+  )
+}
+
 export default function DashboardPage() {
   const { user } = useAuth()
   const isRegularUser = user?.role === 'USER'
@@ -24,24 +39,16 @@ export default function DashboardPage() {
   const fetchOpenTicketCount = async () => {
     let page = 0
     let total = 0
-
     while (true) {
       const params = isRegularUser
         ? { my: true, status: 'OPEN', page, size: TICKET_PAGE_SIZE }
         : { status: 'OPEN', page, size: TICKET_PAGE_SIZE }
-
       const { data } = await ticketApi.getAll(params)
       const batch = Array.isArray(data) ? data : []
-
       total += batch.length
-
-      if (batch.length < TICKET_PAGE_SIZE) {
-        break
-      }
-
+      if (batch.length < TICKET_PAGE_SIZE) break
       page += 1
     }
-
     return total
   }
 
@@ -65,14 +72,22 @@ export default function DashboardPage() {
     queryFn: fetchOpenTicketCount,
   })
 
-  const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
-    queryKey: ['dashboard-bookings-availability'],
-    enabled: user?.role === 'ADMIN',
+  // Fetch bookings for ALL users, not just ADMIN
+  const { data: bookingsData = [], isLoading: bookingsLoading } = useQuery({
+    queryKey: ['dashboard-bookings', user?.id],
+    enabled: !!user,
     queryFn: () => bookingApi.getAll().then((res) => res.data),
   })
 
+  const bookings = Array.isArray(bookingsData) ? bookingsData : []
+
   const activeResources = resources.filter((r) => r.status === 'ACTIVE').length
   const totalResources = resources.length
+
+  const recentBookings = [...bookings]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5)
+
   const recentTickets = [...tickets]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5)
@@ -81,33 +96,22 @@ export default function DashboardPage() {
     const resourceId = booking?.resource?.id
     const resourceName = booking?.resource?.name
     if (!resourceId || !resourceName) return acc
-
     const start = booking?.startTime ? new Date(booking.startTime) : null
     const end = booking?.endTime ? new Date(booking.endTime) : null
     const durationHours = start && end && end > start
       ? (end.getTime() - start.getTime()) / (1000 * 60 * 60)
       : 0
-
     if (!acc[resourceId]) {
-      acc[resourceId] = {
-        resourceId,
-        resourceName,
-        bookingsCount: 0,
-        totalHours: 0,
-      }
+      acc[resourceId] = { resourceId, resourceName, bookingsCount: 0, totalHours: 0 }
     }
-
     acc[resourceId].bookingsCount += 1
     acc[resourceId].totalHours += durationHours
-
     return acc
   }, {})
 
   const topResources = Object.values(resourceUsage)
     .sort((a, b) => {
-      if (b.bookingsCount !== a.bookingsCount) {
-        return b.bookingsCount - a.bookingsCount
-      }
+      if (b.bookingsCount !== a.bookingsCount) return b.bookingsCount - a.bookingsCount
       return b.totalHours - a.totalHours
     })
     .slice(0, 5)
@@ -125,43 +129,19 @@ export default function DashboardPage() {
   const pieGradient = pieSegments.length === 0
     ? '#e2e8f0 0 100%'
     : pieSegments
-      .map((segment) => {
-        const start = accumulated * 360
-        accumulated += segment.ratio
-        const end = accumulated * 360
-        return `${segment.color} ${start}deg ${end}deg`
-      })
-      .join(', ')
+        .map((segment) => {
+          const start = accumulated * 360
+          accumulated += segment.ratio
+          const end = accumulated * 360
+          return `${segment.color} ${start}deg ${end}deg`
+        })
+        .join(', ')
 
   const stats = [
-    {
-      title: 'Total Resources',
-      value: totalResources,
-      icon: Building2,
-      color: 'text-blue-600',
-      bg: 'bg-blue-100',
-    },
-    {
-      title: 'Active Resources',
-      value: activeResources,
-      icon: CalendarCheck,
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-100',
-    },
-    {
-      title: 'Open Tickets',
-      value: openTicketsLoading ? '...' : openTickets,
-      icon: TicketCheck,
-      color: 'text-amber-600',
-      bg: 'bg-amber-100',
-    },
-    {
-      title: 'Bookings',
-      value: 0,
-      icon: TrendingUp,
-      color: 'text-violet-600',
-      bg: 'bg-violet-100',
-    },
+    { title: 'Total Resources',  value: totalResources,  icon: Building2,  color: 'text-blue-600',    bg: 'bg-blue-100' },
+    { title: 'Active Resources', value: activeResources, icon: CalendarCheck, color: 'text-emerald-600', bg: 'bg-emerald-100' },
+    { title: 'Open Tickets',     value: openTicketsLoading ? '...' : openTickets, icon: TicketCheck, color: 'text-amber-600', bg: 'bg-amber-100' },
+    { title: 'Bookings',         value: bookings.length, icon: TrendingUp,  color: 'text-violet-600',  bg: 'bg-violet-100' },
   ]
 
   return (
@@ -172,9 +152,7 @@ export default function DashboardPage() {
         <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
           Welcome back, {user?.name?.split(' ')[0] || 'User'} 👋
         </h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Here's an overview of the campus operations today.
-        </p>
+        <p className="mt-1 text-sm text-slate-600">Here's an overview of the campus operations today.</p>
       </div>
 
       {/* Stats grid */}
@@ -196,16 +174,46 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Quick actions */}
+      {/* Recent activity */}
       <div className="grid gap-4 md:grid-cols-2">
+        {/* Recent Bookings */}
         <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg text-slate-900">Recent Bookings</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-slate-600">No bookings yet. Create your first booking from the Bookings page.</p>
+            {bookingsLoading ? (
+              <p className="text-sm text-slate-600">Loading bookings...</p>
+            ) : recentBookings.length === 0 ? (
+              <p className="text-sm text-slate-600">
+                No bookings yet.{' '}
+                <Link to="/bookings" className="underline hover:text-foreground">
+                  Create your first booking
+                </Link>
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {recentBookings.map((booking) => (
+                  <div key={booking.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-slate-900">{booking.resource?.name}</p>
+                      <p className="text-xs text-slate-500">
+                        {new Date(booking.startTime).toLocaleDateString('en-GB', {
+                          day: '2-digit', month: 'short', year: 'numeric',
+                        })}
+                        {' · '}
+                        {booking.purpose}
+                      </p>
+                    </div>
+                    <BookingStatusBadge status={booking.status} />
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* Recent Tickets */}
         <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg text-slate-900">Recent Tickets</CardTitle>
@@ -236,6 +244,7 @@ export default function DashboardPage() {
         </Card>
       </div>
 
+      {/* Admin: Usage Analytics */}
       {user?.role === 'ADMIN' && (
         <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
           <CardHeader>
@@ -249,7 +258,8 @@ export default function DashboardPage() {
             ) : (
               <div className="grid gap-4 md:grid-cols-[260px_1fr]">
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="mx-auto flex h-44 w-44 items-center justify-center rounded-full"
+                  <div
+                    className="mx-auto flex h-44 w-44 items-center justify-center rounded-full"
                     style={{ background: `conic-gradient(${pieGradient})` }}
                   >
                     <div className="flex h-24 w-24 flex-col items-center justify-center rounded-full bg-white shadow-sm">
@@ -257,15 +267,11 @@ export default function DashboardPage() {
                       <p className="text-xl font-bold text-slate-900">{totalUsageBookings}</p>
                     </div>
                   </div>
-
                   <div className="mt-4 space-y-2">
                     {pieSegments.map((item) => (
                       <div key={`legend-${item.resourceId}`} className="flex items-center justify-between gap-2 text-xs">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span
-                            className="h-2.5 w-2.5 rounded-full"
-                            style={{ backgroundColor: item.color }}
-                          />
+                          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
                           <span className="truncate text-slate-700">{item.resourceName}</span>
                         </div>
                         <span className="font-medium text-slate-800">{Math.round(item.ratio * 100)}%</span>
@@ -273,26 +279,19 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 </div>
-
                 <div className="space-y-3">
                   {topResources.map((item, index) => {
                     const usagePercent = Math.round((item.bookingsCount / peakUsageCount) * 100)
-
                     return (
                       <div key={item.resourceId} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                         <div className="flex items-center justify-between gap-3">
-                          <p className="text-sm font-medium text-slate-900">
-                            {index + 1}. {item.resourceName}
-                          </p>
+                          <p className="text-sm font-medium text-slate-900">{index + 1}. {item.resourceName}</p>
                           <p className="text-xs text-slate-600">
                             {item.bookingsCount} booking{item.bookingsCount > 1 ? 's' : ''} • {item.totalHours.toFixed(1)}h
                           </p>
                         </div>
                         <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200">
-                          <div
-                            className="h-full rounded-full bg-indigo-500"
-                            style={{ width: `${usagePercent}%` }}
-                          />
+                          <div className="h-full rounded-full bg-indigo-500" style={{ width: `${usagePercent}%` }} />
                         </div>
                       </div>
                     )
@@ -307,7 +306,7 @@ export default function DashboardPage() {
       {user?.role === 'ADMIN' && (
         <ResourceAvailabilityCalendar
           resources={resources}
-          bookings={Array.isArray(bookings) ? bookings : []}
+          bookings={bookings}
           isLoading={bookingsLoading}
         />
       )}
