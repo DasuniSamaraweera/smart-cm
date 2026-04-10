@@ -11,6 +11,7 @@ import com.smartcampus.model.Booking;
 import com.smartcampus.model.Resource;
 import com.smartcampus.model.User;
 import com.smartcampus.model.enums.BookingStatus;
+import com.smartcampus.model.enums.NotificationType;
 import com.smartcampus.model.enums.ResourceStatus;
 import com.smartcampus.repository.BookingRepository;
 import com.smartcampus.repository.ResourceRepository;
@@ -28,6 +29,7 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final ResourceRepository resourceRepository;
+    private final NotificationService notificationService;
 
     // ------------------------------------------------------------------ //
     //  GET – list bookings                                                 //
@@ -135,8 +137,39 @@ public class BookingService {
 
         booking.setStatus(newStatus);
         booking.setAdminReason(reason);
+Booking updatedBooking = bookingRepository.save(booking);
 
-        return toResponse(bookingRepository.save(booking));
+        // Send notification to the booking owner
+        String notificationMessage;
+        NotificationType notificationType;
+
+        if (newStatus == BookingStatus.APPROVED) {
+            notificationMessage = String.format(
+                    "Your booking for %s has been approved (from %s to %s)",
+                    updatedBooking.getResource().getName(),
+                    updatedBooking.getStartTime(),
+                    updatedBooking.getEndTime()
+            );
+            notificationType = NotificationType.BOOKING_APPROVED;
+        } else if (newStatus == BookingStatus.REJECTED) {
+            notificationMessage = String.format(
+                    "Your booking for %s has been rejected. Reason: %s",
+                    updatedBooking.getResource().getName(),
+                    reason
+            );
+            notificationType = NotificationType.BOOKING_REJECTED;
+        } else {
+            return toResponse(updatedBooking);
+        }
+
+        notificationService.createNotification(
+                updatedBooking.getUser(),
+                notificationMessage,
+                notificationType,
+                updatedBooking.getId()
+        );
+
+        return toResponse(updatedBooking);
     }
 
     // ------------------------------------------------------------------ //
@@ -165,7 +198,21 @@ public class BookingService {
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
-        bookingRepository.save(booking);
+        Booking cancelledBooking = bookingRepository.save(booking);
+
+        // Notify user if booking is cancelled by admin
+        if (isAdmin && !isOwner) {
+            String notificationMessage = String.format(
+                    "Your booking for %s has been cancelled by admin",
+                    cancelledBooking.getResource().getName()
+            );
+            notificationService.createNotification(
+                    cancelledBooking.getUser(),
+                    notificationMessage,
+                    NotificationType.BOOKING_CANCELLED,
+                    cancelledBooking.getId()
+            );
+        }
     }
 
     // ------------------------------------------------------------------ //

@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import {
   LayoutDashboard,
   Building2,
@@ -12,7 +13,9 @@ import {
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/context/AuthContext'
+import { notificationApi } from '@/api/endpoints'
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -28,6 +31,15 @@ const adminItems = [
 
 export default function Sidebar({ collapsed, onToggle }) {
   const { isAdmin } = useAuth()
+  
+  const { data: unreadData } = useQuery({
+    queryKey: ['notifications-unread-count'],
+    queryFn: () => notificationApi.getUnreadCount().then(res => res.data),
+    refetchInterval: 2000, // Refetch every 2 seconds for real-time updates
+  })
+
+  const unreadCount = unreadData?.count ?? 0
+  const hasUnread = unreadCount > 0
 
   return (
     <aside
@@ -68,11 +80,21 @@ export default function Sidebar({ collapsed, onToggle }) {
                     isActive
                       ? 'bg-white text-indigo-700 shadow-sm'
                       : 'text-indigo-100/85 hover:bg-white/15 hover:text-white',
-                    collapsed && 'justify-center px-2'
+                    collapsed && 'justify-center px-2 relative'
                   )}
                 >
                   <item.icon className={cn('h-5 w-5 shrink-0', isActive && 'text-indigo-700')} />
-                  {!collapsed && <span>{item.label}</span>}
+                  {item.to === '/notifications' && hasUnread && collapsed && (
+                    <div className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></div>
+                  )}
+                  {!collapsed && (
+                    <div className="flex items-center justify-between flex-1 gap-2">
+                      <span>{item.label}</span>
+                      {item.to === '/notifications' && hasUnread && (
+                        <Badge className="bg-red-500 text-white text-xs">{unreadCount}</Badge>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </NavLink>

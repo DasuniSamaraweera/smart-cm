@@ -52,11 +52,13 @@ export default function NotificationsPage() {
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => notificationApi.getAll().then(res => res.data),
+    refetchInterval: 3000, // Refetch every 3 seconds
   })
 
   const { data: unreadData } = useQuery({
     queryKey: ['notifications-unread-count'],
     queryFn: () => notificationApi.getUnreadCount().then(res => res.data),
+    refetchInterval: 2000, // Refetch every 2 seconds for real-time updates
   })
 
   const markAsReadMutation = useMutation({
@@ -66,6 +68,9 @@ export default function NotificationsPage() {
       queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] })
       toast.success('Marked as read')
     },
+    onError: (error) => {
+      toast.error('Failed to mark as read: ' + (error.response?.data?.message || error.message))
+    },
   })
 
   const deleteMutation = useMutation({
@@ -74,6 +79,9 @@ export default function NotificationsPage() {
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
       queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] })
       toast.success('Notification deleted')
+    },
+    onError: (error) => {
+      toast.error('Failed to delete notification: ' + (error.response?.data?.message || error.message))
     },
   })
 
@@ -86,6 +94,9 @@ export default function NotificationsPage() {
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
       queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] })
       toast.success('All notifications marked as read')
+    },
+    onError: (error) => {
+      toast.error('Failed to mark all as read: ' + (error.response?.data?.message || error.message))
     },
   })
 
