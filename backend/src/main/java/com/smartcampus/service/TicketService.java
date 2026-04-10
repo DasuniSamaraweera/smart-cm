@@ -80,7 +80,17 @@ public class TicketService {
         
             saveAttachments(ticket, files, 0);
 
-        return mapToResponse(ticketRepository.save(ticket));
+        Ticket saved = ticketRepository.save(ticket);
+        List<User> admins = userRepository.findByRole(UserRole.ADMIN);
+        for (User admin : admins) {
+            notificationService.createNotification(
+                admin,
+                "New ticket raised: \"" + ticket.getTitle() + "\" by " + reporter.getName(),
+                NotificationType.TICKET_STATUS_CHANGED,
+                saved.getId()
+            );
+        }
+        return mapToResponse(saved);
     }
 
     @Transactional(readOnly = true)
