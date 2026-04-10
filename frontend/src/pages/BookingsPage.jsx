@@ -5,7 +5,7 @@ import { bookingApi, resourceApi } from '@/api/endpoints'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -84,6 +84,151 @@ function TabButton({ label, count, active, onClick }) {
         </span>
       )}
     </button>
+  )
+}
+
+// ─── Admin Analytics Section ─────────────────────────────────────────────────
+function BookingAnalytics({ bookings }) {
+  const resourceCounts = bookings.reduce((acc, b) => {
+    const name = b.resource?.name
+    if (!name) return acc
+    acc[name] = (acc[name] || 0) + 1
+    return acc
+  }, {})
+
+  const topResources = Object.entries(resourceCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+
+  const maxResourceCount = topResources[0]?.[1] || 1
+
+  const hourCounts = bookings.reduce((acc, b) => {
+    if (!b.startTime) return acc
+    const hour = new Date(b.startTime).getHours()
+    acc[hour] = (acc[hour] || 0) + 1
+    return acc
+  }, {})
+
+  const peakHours = Object.entries(hourCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .sort((a, b) => Number(a[0]) - Number(b[0]))
+
+  const maxHourCount = peakHours[0]?.[1] || 1
+
+  function fmtHour(h) {
+    const hour = Number(h)
+    if (hour === 0) return '12 AM'
+    if (hour < 12) return `${hour} AM`
+    if (hour === 12) return '12 PM'
+    return `${hour - 12} PM`
+  }
+
+  const rankColors = [
+    'bg-yellow-100 text-yellow-700',
+    'bg-slate-100 text-slate-600',
+    'bg-orange-100 text-orange-600',
+    'bg-muted text-muted-foreground',
+    'bg-muted text-muted-foreground',
+  ]
+
+  if (bookings.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <p className="text-sm text-muted-foreground">No booking data available yet.</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {/* Top Resources */}
+      <Card className="rounded-2xl border-slate-200 shadow-sm">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-100">
+              <span className="text-sm">🏆</span>
+            </div>
+            <div>
+              <CardTitle className="text-base">Top Booked Resources</CardTitle>
+              <p className="text-xs text-muted-foreground">Most requested facilities</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {topResources.map(([name, count], index) => {
+            const pct = Math.round((count / maxResourceCount) * 100)
+            return (
+              <div key={name} className="space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-md ${rankColors[index]}`}>
+                      #{index + 1}
+                    </span>
+                    <span className="text-sm font-medium truncate">{name}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    {count} booking{count > 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-400 transition-all"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </CardContent>
+      </Card>
+
+      {/* Peak Hours */}
+      <Card className="rounded-2xl border-slate-200 shadow-sm">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
+              <span className="text-sm">🕐</span>
+            </div>
+            <div>
+              <CardTitle className="text-base">Peak Booking Hours</CardTitle>
+              <p className="text-xs text-muted-foreground">Busiest times of day</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {peakHours.map(([hour, count]) => {
+            const pct = Math.round((count / maxHourCount) * 100)
+            const isTopHour = count === maxHourCount
+            return (
+              <div key={hour} className="space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    {isTopHour && <span className="text-xs">🔥</span>}
+                    <span className="text-sm font-medium">{fmtHour(hour)}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {count} booking{count > 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      isTopHour
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-400'
+                        : 'bg-gradient-to-r from-blue-400 to-blue-300'
+                    }`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
@@ -349,7 +494,11 @@ function BookingCard({ booking, isAdmin, onReview, onCancel }) {
 
           <div className="flex flex-col gap-2 shrink-0">
             {isAdmin && booking.status === 'PENDING' && (
-              <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white" onClick={() => onReview(booking)}>
+              <Button
+                size="sm"
+                className="bg-amber-500 hover:bg-amber-600 text-white"
+                onClick={() => onReview(booking)}
+              >
                 Review
               </Button>
             )}
@@ -408,13 +557,10 @@ export default function BookingsPage() {
   const now = new Date()
   const allBookings = Array.isArray(data) ? data : []
 
-  // Split into upcoming and past based on startTime
   const upcomingBookings = allBookings.filter(b => new Date(b.startTime) >= now)
   const pastBookings     = allBookings.filter(b => new Date(b.startTime) < now)
+  const baseList         = activeTab === 'upcoming' ? upcomingBookings : pastBookings
 
-  const baseList = activeTab === 'upcoming' ? upcomingBookings : pastBookings
-
-  // Apply search and status filter on top of tab
   const filtered = baseList.filter(b => {
     const matchStatus = statusFilter === 'ALL' || b.status === statusFilter
     const matchSearch = !search ||
@@ -526,6 +672,14 @@ export default function BookingsPage() {
               onCancel={handleCancel}
             />
           ))}
+        </div>
+      )}
+
+      {/* Admin Analytics — only visible to admins */}
+      {isAdmin && !isLoading && (
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold">Booking Analytics</h2>
+          <BookingAnalytics bookings={allBookings} />
         </div>
       )}
 
