@@ -57,3 +57,19 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
 }
+
+@keyframes ticketPieReveal {
+  from {
+    stroke-dasharray: 0 999;
+  }
+}
+
+@keyframes ticketBarGrow {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
