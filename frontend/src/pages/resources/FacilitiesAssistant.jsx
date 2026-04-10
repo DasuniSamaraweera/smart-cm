@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Bot, HelpCircle, MessageCircle, Send, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Bot, HelpCircle, MessageCircle, Mic, MicOff, Send, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -92,8 +92,12 @@ function buildResourceReply(query, resources) {
 }
 
 export default function FacilitiesAssistant({ resources, onApplyFilters }) {
+  const recognitionRef = useRef(null)
+  const transcriptRef = useRef('')
   const [isOpen, setIsOpen] = useState(false)
   const [message, setMessage] = useState('')
+  const [isListening, setIsListening] = useState(false)
+  const [isVoiceSupported, setIsVoiceSupported] = useState(false)
   const [currentQuestion, setCurrentQuestion] = useState('')
   const [currentReply, setCurrentReply] = useState({
     text: 'Facilities Assistant is ready. I only answer questions about resources in this module.',
@@ -105,7 +109,7 @@ export default function FacilitiesAssistant({ resources, onApplyFilters }) {
     []
   )
 
-  const sendMessage = (rawText) => {
+  const sendMessage = useCallback((rawText) => {
     const text = rawText.trim()
     if (!text) return
 
@@ -113,6 +117,88 @@ export default function FacilitiesAssistant({ resources, onApplyFilters }) {
     setCurrentQuestion(text)
     setCurrentReply(reply)
     setMessage('')
+  }, [resources])
+
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      setIsVoiceSupported(false)
+      return undefined
+    }
+
+    setIsVoiceSupported(true)
+
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'en-US'
+    recognition.continuous = false
+    recognition.interimResults = true
+    recognition.maxAlternatives = 1
+
+    recognition.onresult = (event) => {
+      let transcript = ''
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        transcript += event.results[i][0].transcript
+      }
+
+      transcriptRef.current = transcript.trim()
+      setMessage(transcriptRef.current)
+    }
+
+    recognition.onend = () => {
+      setIsListening(false)
+
+      if (transcriptRef.current) {
+        sendMessage(transcriptRef.current)
+        transcriptRef.current = ''
+      }
+    }
+
+    recognition.onerror = () => {
+      setIsListening(false)
+      setCurrentReply({
+        text: 'Voice input failed. Please check microphone permissions and try again.',
+        filterPatch: null,
+      })
+    }
+
+    recognitionRef.current = recognition
+
+    return () => {
+      try {
+        recognition.stop()
+      } catch {
+        // no-op cleanup
+      }
+      recognitionRef.current = null
+    }
+  }, [sendMessage])
+
+  const toggleVoiceInput = () => {
+    if (!isVoiceSupported || !recognitionRef.current) return
+
+    if (isListening) {
+      recognitionRef.current.stop()
+      setIsListening(false)
+      return
+    }
+
+    transcriptRef.current = ''
+    setMessage('')
+
+    try {
+      recognitionRef.current.start()
+      setIsListening(true)
+      setCurrentReply({
+        text: 'Listening... speak your request clearly.',
+        filterPatch: null,
+      })
+    } catch {
+      setIsListening(false)
+      setCurrentReply({
+        text: 'Unable to start voice input. Please try again.',
+        filterPatch: null,
+      })
+    }
   }
 
   return (
@@ -189,6 +275,9 @@ export default function FacilitiesAssistant({ resources, onApplyFilters }) {
               className="flex gap-2"
               onSubmit={(e) => {
                 e.preventDefault()
+                if (isListening && recognitionRef.current) {
+                  recognitionRef.current.stop()
+                }
                 sendMessage(message)
               }}
             >
@@ -198,6 +287,18 @@ export default function FacilitiesAssistant({ resources, onApplyFilters }) {
                 placeholder="Ask about facilities (type, status, capacity, location)"
                 className="rounded-xl border-slate-200 bg-slate-50"
               />
+              {isVoiceSupported && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  className={`rounded-xl border-slate-300 ${isListening ? 'bg-rose-50 text-rose-600 border-rose-300' : ''}`}
+                  onClick={toggleVoiceInput}
+                  aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
+                >
+                  {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                </Button>
+              )}
               <Button type="submit" size="icon" className="rounded-xl bg-indigo-600 text-white hover:bg-indigo-700" aria-label="Send assistant message">
                 <Send className="h-4 w-4" />
               </Button>
