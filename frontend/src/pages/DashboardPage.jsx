@@ -35,14 +35,17 @@ function BookingStatusBadge({ status }) {
 export default function DashboardPage() {
   const { user } = useAuth()
   const isRegularUser = user?.role === 'USER'
+  const isTechnician = user?.role === 'TECHNICIAN'
+  const ticketMetricStatus = isTechnician ? 'RESOLVED' : 'OPEN'
+  const ticketMetricTitle = isTechnician ? 'Resolved Tickets' : 'Open Tickets'
 
-  const fetchOpenTicketCount = async () => {
+  const fetchTicketMetricCount = async () => {
     let page = 0
     let total = 0
     while (true) {
       const params = isRegularUser
-        ? { my: true, status: 'OPEN', page, size: TICKET_PAGE_SIZE }
-        : { status: 'OPEN', page, size: TICKET_PAGE_SIZE }
+        ? { my: true, status: ticketMetricStatus, page, size: TICKET_PAGE_SIZE }
+        : { status: ticketMetricStatus, page, size: TICKET_PAGE_SIZE }
       const { data } = await ticketApi.getAll(params)
       const batch = Array.isArray(data) ? data : []
       total += batch.length
@@ -66,10 +69,10 @@ export default function DashboardPage() {
         .then((res) => res.data),
   })
 
-  const { data: openTickets = 0, isLoading: openTicketsLoading } = useQuery({
+  const { data: ticketMetricCount = 0, isLoading: ticketMetricLoading } = useQuery({
     queryKey: ['dashboard-open-ticket-count', user?.id, user?.role],
     enabled: !!user,
-    queryFn: fetchOpenTicketCount,
+    queryFn: fetchTicketMetricCount,
   })
 
   // Fetch bookings for ALL users, not just ADMIN
@@ -140,7 +143,7 @@ export default function DashboardPage() {
   const stats = [
     { title: 'Total Resources',  value: totalResources,  icon: Building2,  color: 'text-blue-600',    bg: 'bg-blue-100' },
     { title: 'Active Resources', value: activeResources, icon: CalendarCheck, color: 'text-emerald-600', bg: 'bg-emerald-100' },
-    { title: 'Open Tickets',     value: openTicketsLoading ? '...' : openTickets, icon: TicketCheck, color: 'text-amber-600', bg: 'bg-amber-100' },
+    { title: ticketMetricTitle, value: ticketMetricLoading ? '...' : ticketMetricCount, icon: TicketCheck, color: 'text-amber-600', bg: 'bg-amber-100' },
     { title: 'Bookings',         value: bookings.length, icon: TrendingUp,  color: 'text-violet-600',  bg: 'bg-violet-100' },
   ]
 
