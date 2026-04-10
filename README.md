@@ -295,5 +295,29 @@ main
 | `frontend/src/main.jsx` | App providers (Router, QueryClient, Auth, Toaster) |
 | `frontend/src/index.css` | Theme colors (CSS variables) |
 
+---
+
+## Recent Changes (April 2026)
+
+### Module A - Resources and Dashboard UX
+- Added smart ranking emphasis in the resource catalog: the top-ranked item in Best Fit mode is now visually highlighted as the best match.
+- Improved resource filter clarity with labeled date/time fields and a readable selected date/time summary panel.
+- Improved resource card readability by adding a dedicated availability block with clear date and time formatting.
+- Updated sidebar theme to a white background with adjusted navigation contrast for better readability.
+
+### Facilities Assistant
+- Added voice input support in the Facilities Assistant chat box using browser speech recognition.
+- Included microphone start/stop controls, listening state feedback, and permission/error fallback messaging.
+
+### Booking and Analytics Updates
+- Added booking management improvements including upcoming/past views and clearer booking duration display.
+- Added admin booking analytics enhancements with top resource usage insights and peak-hour visibility.
+
+### Ticketing Updates
+- Added technician ticket analysis page and follow-up ticketing refinements.
+
+### Notes
+- Resource availability calendar on the dashboard consumes the shared resources query and reflects newly added active resources based on their configured availability date.
+
 
 
