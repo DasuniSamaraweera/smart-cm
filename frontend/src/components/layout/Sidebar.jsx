@@ -7,6 +7,7 @@ import {
   TicketCheck,
   Bell,
   Settings,
+  PieChart,
   ChevronLeft,
   GraduationCap,
 } from 'lucide-react'
@@ -27,6 +28,7 @@ const navItems = [
 
 const adminItems = [
   { to: '/admin/users', icon: Settings, label: 'User Management' },
+  { to: '/admin/ticket-analysis', icon: PieChart, label: 'Ticket Analysis' },
 ]
 
 export default function Sidebar({ collapsed, onToggle }) {

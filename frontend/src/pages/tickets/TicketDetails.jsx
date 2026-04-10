@@ -318,9 +318,9 @@ export default function TicketDetails() {
                     </SelectContent>
                   </Select>
                   <Button
-                    variant="outline"
+                    variant="default"
                     size="sm"
-                    className="w-full"
+                    className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
                     onClick={handleAssign}
                     disabled={assigning || !selectedAssignee || !canAssign || !!assigneeLoadError || assignees.length === 0}
                   >
