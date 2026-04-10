@@ -399,10 +399,18 @@ export default function ResourcesPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {displayedResources.map((resource) => {
+          {displayedResources.map((resource, index) => {
             const Icon = typeIcons[resource.type] || Building2
+            const isBestMatch = sortMode === 'SMART_FIT' && index === 0
             return (
-              <Card key={resource.id} className="group rounded-2xl border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+              <Card
+                key={resource.id}
+                className={`group rounded-2xl bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
+                  isBestMatch
+                    ? 'border-2 border-emerald-400 ring-2 ring-emerald-200/70'
+                    : 'border-slate-200'
+                }`}
+              >
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -415,9 +423,16 @@ export default function ResourcesPage() {
                           {typeLabels[resource.type] || resource.type}
                         </p>
                         {sortMode === 'SMART_FIT' && (
-                          <p className="mt-1 inline-flex rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                            Best Fit Score: {resource.smartFitScore ?? 0}
-                          </p>
+                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                            {isBestMatch && (
+                              <p className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                                Best Match
+                              </p>
+                            )}
+                            <p className="inline-flex rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                              Best Fit Score: {resource.smartFitScore ?? 0}
+                            </p>
+                          </div>
                         )}
                       </div>
                     </div>
