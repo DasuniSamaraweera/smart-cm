@@ -6,7 +6,6 @@ import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -24,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-// ─── Status badge colours ───────────────────────────────────────────────────
+// ─── Status badge colours ────────────────────────────────────────────────────
 const STATUS_STYLES = {
   PENDING:   'bg-amber-100 text-amber-800',
   APPROVED:  'bg-green-100 text-green-800',
@@ -40,7 +39,7 @@ function StatusBadge({ status }) {
   )
 }
 
-// ─── Format helpers ─────────────────────────────────────────────────────────
+// ─── Format helpers ──────────────────────────────────────────────────────────
 function fmtDateTime(dt) {
   if (!dt) return '—'
   return new Date(dt).toLocaleString('en-GB', {
@@ -54,17 +53,50 @@ function fmtTime(t) {
   return t.substring(0, 5)
 }
 
+function getDuration(startTime, endTime) {
+  if (!startTime || !endTime) return null
+  const diffMs = new Date(endTime) - new Date(startTime)
+  const totalMins = Math.round(diffMs / 60000)
+  const hours = Math.floor(totalMins / 60)
+  const mins = totalMins % 60
+  if (hours === 0) return `${mins}m`
+  if (mins === 0) return `${hours}h`
+  return `${hours}h ${mins}m`
+}
+
+// ─── Tab Button ──────────────────────────────────────────────────────────────
+function TabButton({ label, count, active, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+        active
+          ? 'bg-white shadow-sm border text-foreground'
+          : 'text-muted-foreground hover:text-foreground'
+      }`}
+    >
+      {label}
+      {count !== undefined && (
+        <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
+          active ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+        }`}>
+          {count}
+        </span>
+      )}
+    </button>
+  )
+}
+
 // ─── New Booking Dialog ──────────────────────────────────────────────────────
 function BookingFormDialog({ open, onClose, preselectedResourceId }) {
   const queryClient = useQueryClient()
 
-  const [resourceId, setResourceId]       = useState(preselectedResourceId ?? '')
-  const [startTime, setStartTime]         = useState('')
-  const [endTime, setEndTime]             = useState('')
-  const [purpose, setPurpose]             = useState('')
-  const [expectedAttendees, setExpected]  = useState('')
+  const [resourceId, setResourceId]      = useState(preselectedResourceId ?? '')
+  const [startTime, setStartTime]        = useState('')
+  const [endTime, setEndTime]            = useState('')
+  const [purpose, setPurpose]            = useState('')
+  const [expectedAttendees, setExpected] = useState('')
 
-  // Reset form when dialog opens, keeping preselected resource
   useEffect(() => {
     if (open) {
       setResourceId(preselectedResourceId ?? '')
@@ -81,7 +113,6 @@ function BookingFormDialog({ open, onClose, preselectedResourceId }) {
   })
 
   const resources = resourcesData?.content ?? resourcesData ?? []
-
   const selectedResource = resources.find(r => String(r.id) === String(resourceId))
 
   const createMutation = useMutation({
@@ -98,7 +129,6 @@ function BookingFormDialog({ open, onClose, preselectedResourceId }) {
 
   function handleSubmit(e) {
     e.preventDefault()
-
     if (!resourceId) return toast.error('Please select a resource')
     if (!startTime || !endTime) return toast.error('Please set start and end times')
     if (new Date(endTime) <= new Date(startTime)) return toast.error('End time must be after start time')
@@ -106,8 +136,8 @@ function BookingFormDialog({ open, onClose, preselectedResourceId }) {
 
     createMutation.mutate({
       resourceId: Number(resourceId),
-      startTime: startTime.replace('T', 'T').slice(0, 19),
-      endTime:   endTime.replace('T', 'T').slice(0, 19),
+      startTime: startTime.slice(0, 19),
+      endTime:   endTime.slice(0, 19),
       purpose,
       expectedAttendees: expectedAttendees ? Number(expectedAttendees) : null,
     })
@@ -119,9 +149,7 @@ function BookingFormDialog({ open, onClose, preselectedResourceId }) {
         <DialogHeader>
           <DialogTitle>New Booking Request</DialogTitle>
         </DialogHeader>
-
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
-          {/* Resource selector */}
           <div className="space-y-1">
             <Label>Resource</Label>
             <Select value={String(resourceId)} onValueChange={setResourceId}>
@@ -136,15 +164,14 @@ function BookingFormDialog({ open, onClose, preselectedResourceId }) {
                 ))}
               </SelectContent>
             </Select>
-            {selectedResource?.availabilityDate && selectedResource?.availabilityStart && (
+            {selectedResource?.availabilityStart && (
               <p className="text-xs text-muted-foreground">
-                Available {selectedResource.availabilityDate} · {fmtTime(selectedResource.availabilityStart)} – {fmtTime(selectedResource.availabilityEnd)}
+                Available {fmtTime(selectedResource.availabilityStart)} – {fmtTime(selectedResource.availabilityEnd)}
                 {selectedResource.capacity ? ` · Capacity: ${selectedResource.capacity}` : ''}
               </p>
             )}
           </div>
 
-          {/* Time range */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label>Start time</Label>
@@ -166,7 +193,6 @@ function BookingFormDialog({ open, onClose, preselectedResourceId }) {
             </div>
           </div>
 
-          {/* Purpose */}
           <div className="space-y-1">
             <Label>Purpose</Label>
             <Textarea
@@ -177,7 +203,6 @@ function BookingFormDialog({ open, onClose, preselectedResourceId }) {
             />
           </div>
 
-          {/* Expected attendees (optional) */}
           <div className="space-y-1">
             <Label>Expected attendees <span className="text-muted-foreground">(optional)</span></Label>
             <Input
@@ -205,11 +230,10 @@ function BookingFormDialog({ open, onClose, preselectedResourceId }) {
   )
 }
 
-// ─── Admin: Approve / Reject Dialog ─────────────────────────────────────────
+// ─── Admin: Review Dialog ────────────────────────────────────────────────────
 function ReviewDialog({ booking, onClose }) {
   const queryClient = useQueryClient()
   const [reason, setReason] = useState('')
-  const [action, setAction] = useState(null) // 'APPROVED' | 'REJECTED'
 
   const reviewMutation = useMutation({
     mutationFn: ({ status, reason }) =>
@@ -240,7 +264,6 @@ function ReviewDialog({ booking, onClose }) {
         <DialogHeader>
           <DialogTitle>Review Booking</DialogTitle>
         </DialogHeader>
-
         <div className="space-y-3 text-sm mt-2">
           <div className="grid grid-cols-2 gap-x-4 gap-y-1">
             <span className="text-muted-foreground">Resource</span>
@@ -251,6 +274,8 @@ function ReviewDialog({ booking, onClose }) {
             <span>{fmtDateTime(booking.startTime)}</span>
             <span className="text-muted-foreground">End</span>
             <span>{fmtDateTime(booking.endTime)}</span>
+            <span className="text-muted-foreground">Duration</span>
+            <span>{getDuration(booking.startTime, booking.endTime)}</span>
             <span className="text-muted-foreground">Purpose</span>
             <span>{booking.purpose}</span>
             {booking.expectedAttendees && (
@@ -273,17 +298,10 @@ function ReviewDialog({ booking, onClose }) {
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={onClose}>Close</Button>
-            <Button
-              variant="destructive"
-              disabled={reviewMutation.isPending}
-              onClick={() => handleReview('REJECTED')}
-            >
+            <Button variant="destructive" disabled={reviewMutation.isPending} onClick={() => handleReview('REJECTED')}>
               Reject
             </Button>
-            <Button
-              disabled={reviewMutation.isPending}
-              onClick={() => handleReview('APPROVED')}
-            >
+            <Button disabled={reviewMutation.isPending} onClick={() => handleReview('APPROVED')}>
               Approve
             </Button>
           </div>
@@ -293,9 +311,10 @@ function ReviewDialog({ booking, onClose }) {
   )
 }
 
-// ─── Booking Card ────────────────────────────────────────────────────────────
+// ─── Booking Card ─────────────────────────────────────────────────────────────
 function BookingCard({ booking, isAdmin, onReview, onCancel }) {
   const canCancel = ['PENDING', 'APPROVED'].includes(booking.status)
+  const duration = getDuration(booking.startTime, booking.endTime)
 
   return (
     <Card>
@@ -313,21 +332,24 @@ function BookingCard({ booking, isAdmin, onReview, onCancel }) {
                 <span className="text-foreground">{fmtDateTime(booking.startTime)}</span>
                 {' → '}
                 <span className="text-foreground">{fmtDateTime(booking.endTime)}</span>
+                {duration && (
+                  <span className="ml-2 text-xs bg-muted px-1.5 py-0.5 rounded-md">
+                    {duration}
+                  </span>
+                )}
               </p>
               <p>Purpose: {booking.purpose}</p>
               {booking.expectedAttendees && <p>Attendees: {booking.expectedAttendees}</p>}
               {isAdmin && <p>Requested by: {booking.user?.name}</p>}
               {booking.adminReason && (
-                <p className="text-amber-700 dark:text-amber-400">
-                  Note: {booking.adminReason}
-                </p>
+                <p className="text-amber-700 dark:text-amber-400">Note: {booking.adminReason}</p>
               )}
             </div>
           </div>
 
           <div className="flex flex-col gap-2 shrink-0">
             {isAdmin && booking.status === 'PENDING' && (
-              <Button size="sm" variant="outline" onClick={() => onReview(booking)}>
+              <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white" onClick={() => onReview(booking)}>
                 Review
               </Button>
             )}
@@ -348,19 +370,19 @@ function BookingCard({ booking, isAdmin, onReview, onCancel }) {
   )
 }
 
-// ─── Main Page ───────────────────────────────────────────────────────────────
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function BookingsPage() {
   const { isAdmin } = useAuth()
   const queryClient = useQueryClient()
   const [searchParams] = useSearchParams()
 
-  // "Book Now" from Resources page passes ?resourceId=X
   const preselectedResourceId = searchParams.get('resourceId')
 
   const [showNewBooking, setShowNewBooking] = useState(!!preselectedResourceId)
   const [reviewTarget, setReviewTarget]     = useState(null)
   const [statusFilter, setStatusFilter]     = useState('ALL')
   const [search, setSearch]                 = useState('')
+  const [activeTab, setActiveTab]           = useState('upcoming')
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['bookings'],
@@ -383,9 +405,17 @@ export default function BookingsPage() {
     cancelMutation.mutate(booking.id)
   }
 
-  // Client-side filtering
-  const bookings = Array.isArray(data) ? data : []
-  const filtered = bookings.filter(b => {
+  const now = new Date()
+  const allBookings = Array.isArray(data) ? data : []
+
+  // Split into upcoming and past based on startTime
+  const upcomingBookings = allBookings.filter(b => new Date(b.startTime) >= now)
+  const pastBookings     = allBookings.filter(b => new Date(b.startTime) < now)
+
+  const baseList = activeTab === 'upcoming' ? upcomingBookings : pastBookings
+
+  // Apply search and status filter on top of tab
+  const filtered = baseList.filter(b => {
     const matchStatus = statusFilter === 'ALL' || b.status === statusFilter
     const matchSearch = !search ||
       b.resource?.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -394,9 +424,8 @@ export default function BookingsPage() {
     return matchStatus && matchSearch
   })
 
-  // Stats for admin summary bar
-  const pending  = bookings.filter(b => b.status === 'PENDING').length
-  const approved = bookings.filter(b => b.status === 'APPROVED').length
+  const pending  = allBookings.filter(b => b.status === 'PENDING').length
+  const approved = allBookings.filter(b => b.status === 'APPROVED').length
 
   return (
     <div className="space-y-6">
@@ -424,6 +453,22 @@ export default function BookingsPage() {
           </div>
         </div>
       )}
+
+      {/* Tabs */}
+      <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg w-fit">
+        <TabButton
+          label="Upcoming"
+          count={upcomingBookings.length}
+          active={activeTab === 'upcoming'}
+          onClick={() => setActiveTab('upcoming')}
+        />
+        <TabButton
+          label="Past"
+          count={pastBookings.length}
+          active={activeTab === 'past'}
+          onClick={() => setActiveTab('past')}
+        />
+      </div>
 
       {/* Filters */}
       <div className="flex gap-3 flex-wrap">
@@ -459,10 +504,14 @@ export default function BookingsPage() {
       {!isLoading && !isError && filtered.length === 0 && (
         <div className="text-center py-16">
           <div className="text-4xl mb-3">📅</div>
-          <p className="text-muted-foreground text-sm">No bookings found</p>
-          <Button className="mt-4" onClick={() => setShowNewBooking(true)}>
-            Make your first booking
-          </Button>
+          <p className="text-muted-foreground text-sm">
+            {activeTab === 'upcoming' ? 'No upcoming bookings' : 'No past bookings'}
+          </p>
+          {activeTab === 'upcoming' && (
+            <Button className="mt-4" onClick={() => setShowNewBooking(true)}>
+              Make your first booking
+            </Button>
+          )}
         </div>
       )}
 
