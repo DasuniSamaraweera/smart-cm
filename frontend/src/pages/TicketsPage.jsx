@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { PlusCircle, TicketCheck } from 'lucide-react'
+import { PlusCircle, TicketCheck, User, UserCheck } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -153,27 +153,65 @@ export default function TicketsPage() {
           {tickets.map((ticket) => (
             <Card
               key={ticket.id}
-              className="cursor-pointer transition-shadow hover:shadow-sm"
+              className="group cursor-pointer overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] hover:shadow-xl"
               onClick={() => navigate(`/tickets/${ticket.id}`)}
             >
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="line-clamp-1 text-base">{ticket.title}</CardTitle>
-                  <Badge variant={statusVariant[ticket.status] || 'secondary'}>{ticket.status}</Badge>
+              <CardHeader className="space-y-4 pb-3">
+                <div className="flex items-start justify-between gap-3">
+                  <CardTitle className="line-clamp-2 text-lg font-semibold leading-snug text-slate-900">
+                    {ticket.title}
+                  </CardTitle>
+                  <Badge
+                    variant={statusVariant[ticket.status] || 'secondary'}
+                    className="shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide"
+                  >
+                    {ticket.status}
+                  </Badge>
                 </div>
+                <p className="line-clamp-2 text-sm leading-relaxed text-slate-600">
+                  {ticket.description}
+                </p>
               </CardHeader>
-              <CardContent className="space-y-3 pt-0">
-                <p className="line-clamp-2 text-sm text-muted-foreground">{ticket.description}</p>
-                <div className="space-y-1 text-xs text-muted-foreground">
-                  <p>Priority: {ticket.priority}</p>
-                  <p>Category: {ticket.category || 'N/A'}</p>
-                  <p>Reporter: {ticket.reporter?.name || 'N/A'}</p>
-                  {isAdmin && <p>Assigned: {ticket.assignedTo?.name || 'Unassigned'}</p>}
+              <CardContent className="space-y-4 pt-0">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Reporter</p>
+                    <div className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-800">
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-slate-700">
+                        <User className="h-3.5 w-3.5" />
+                      </span>
+                      <span className="truncate">{ticket.reporter?.name || 'N/A'}</span>
+                    </div>
+                  </div>
+
+                  {isAdmin && (
+                    <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Assignee</p>
+                      <div className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-800">
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-slate-700">
+                          <UserCheck className="h-3.5 w-3.5" />
+                        </span>
+                        <span className="truncate">{ticket.assignedTo?.name || 'Unassigned'}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-xl border border-slate-100 px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Category</p>
+                    <p className="mt-1 truncate text-sm font-medium text-slate-800">{ticket.category || 'N/A'}</p>
+                  </div>
+                  <div className="rounded-xl border border-slate-100 px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Priority</p>
+                    <p className="mt-1 truncate text-sm font-medium text-slate-800">{ticket.priority}</p>
+                  </div>
+                </div>
+
                 <Button
                   variant={isAdmin || isRegularUser || isTechnician ? 'default' : 'outline'}
                   size="sm"
-                  className="w-full"
+                  className="w-full rounded-xl py-5 text-sm font-semibold tracking-wide transition-all duration-200 group-hover:shadow-md"
                   onClick={(e) => {
                     e.stopPropagation()
                     navigate(`/tickets/${ticket.id}`)

@@ -364,6 +364,7 @@ export default function CreateTicket() {
                         type="button"
                         variant="outline"
                         size="sm"
+                        className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
                         onClick={() => removeAttachment(index)}
                       >
                         Remove
@@ -375,7 +376,14 @@ export default function CreateTicket() {
             </div>
             
             <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
+                onClick={() => navigate(-1)}
+              >
+                Cancel
+              </Button>
               <Button type="submit" disabled={loading}>
                 {loading ? 'Submitting...' : 'Submit Ticket'}
               </Button>
