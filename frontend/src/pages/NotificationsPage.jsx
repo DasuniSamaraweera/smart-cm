@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { notificationApi } from '@/api/endpoints'
 import { toast } from 'sonner'
+import { useNavigate } from 'react-router-dom'
 
 const TYPE_CONFIG = {
   BOOKING_APPROVED:      { icon: CalendarCheck, label: 'Booking Approved',  variant: 'default' },
@@ -18,6 +19,17 @@ const TYPE_CONFIG = {
   TICKET_STATUS_CHANGED: { icon: Wrench,         label: 'Ticket Updated',    variant: 'default' },
   TICKET_ASSIGNED:       { icon: UserCheck,      label: 'Ticket Assigned',   variant: 'default' },
   TICKET_COMMENT_ADDED:  { icon: MessageSquare,  label: 'New Comment',       variant: 'secondary' },
+}
+
+const getNavigationPath = (notification) => {
+  const { type, referenceId } = notification
+  if (['BOOKING_APPROVED', 'BOOKING_REJECTED', 'BOOKING_CANCELLED'].includes(type)) {
+    return '/bookings'
+  }
+  if (['TICKET_STATUS_CHANGED', 'TICKET_ASSIGNED', 'TICKET_COMMENT_ADDED'].includes(type)) {
+    return referenceId ? `/tickets/${referenceId}` : '/tickets'
+  }
+  return null
 }
 
 function NotificationIcon({ type }) {
@@ -48,17 +60,18 @@ function NotificationSkeleton() {
 
 export default function NotificationsPage() {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => notificationApi.getAll().then(res => res.data),
-    refetchInterval: 3000, // Refetch every 3 seconds
+    refetchInterval: 3000,
   })
 
   const { data: unreadData } = useQuery({
     queryKey: ['notifications-unread-count'],
     queryFn: () => notificationApi.getUnreadCount().then(res => res.data),
-    refetchInterval: 2000, // Refetch every 2 seconds for real-time updates
+    refetchInterval: 2000,
   })
 
   const markAsReadMutation = useMutation({
@@ -99,6 +112,12 @@ export default function NotificationsPage() {
       toast.error('Failed to mark all as read: ' + (error.response?.data?.message || error.message))
     },
   })
+
+  const handleCardClick = (n) => {
+    if (!n.read) markAsReadMutation.mutate(n.id)
+    const path = getNavigationPath(n)
+    if (path) navigate(path)
+  }
 
   const unreadCount = unreadData?.count ?? 0
   const hasUnread = unreadCount > 0
@@ -146,13 +165,15 @@ export default function NotificationsPage() {
         <div className="space-y-3">
           {notifications.map((n) => {
             const config = TYPE_CONFIG[n.type]
+            const path = getNavigationPath(n)
             return (
               <Card
                 key={n.id}
-                className={!n.read
-                  ? 'border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-950/30'
-                  : ''
-                }
+                className={`
+                  ${!n.read ? 'border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-950/30' : ''}
+                  ${path ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}
+                `}
+                onClick={() => handleCardClick(n)}
               >
                 <CardContent className="flex items-center justify-between py-4">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -166,6 +187,11 @@ export default function NotificationsPage() {
                         {!n.read && (
                           <Badge className="bg-blue-500 text-white text-xs">Unread</Badge>
                         )}
+                        {path && (
+                          <Badge variant="outline" className="text-blue-600 text-xs">
+                            Click to view →
+                          </Badge>
+                        )}
                         <span className="text-xs text-muted-foreground">
                           {new Date(n.createdAt).toLocaleString()}
                         </span>
@@ -173,7 +199,7 @@ export default function NotificationsPage() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2 ml-4 shrink-0">
+                  <div className="flex gap-2 ml-4 shrink-0" onClick={e => e.stopPropagation()}>
                     {!n.read && (
                       <Button
                         size="sm"
