@@ -141,9 +141,9 @@ export default function Sidebar({ collapsed, onToggle }) {
 
         {isTechnician && (
           <>
-            <Separator className="my-4 bg-white/15" />
+            <Separator className="my-4 bg-slate-200" />
             {!collapsed && (
-              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-100/75">
+              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
                 Technician
               </p>
             )}
@@ -156,7 +156,7 @@ export default function Sidebar({ collapsed, onToggle }) {
                         'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
                         isActive
                           ? 'bg-white text-indigo-700 shadow-sm'
-                          : 'text-indigo-100/85 hover:bg-white/15 hover:text-white',
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
                         collapsed && 'justify-center px-2'
                       )}
                     >

@@ -51,6 +51,7 @@ export default function CreateTicket() {
   });
   const [attachments, setAttachments] = useState([]);
   const [attachmentError, setAttachmentError] = useState('');
+  const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -81,6 +82,51 @@ export default function CreateTicket() {
     e.target.value = '';
   };
 
+  const clearFieldError = (field) => {
+    setFormErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.title.trim()) {
+      errors.title = 'Title is required.';
+    }
+
+    if (!formData.category) {
+      errors.category = 'Category is required.';
+    }
+
+    if (!formData.priority) {
+      errors.priority = 'Priority is required.';
+    }
+
+    const isResourceApplicable = !resourcesLoading && !resourcesError && resources.length > 0;
+    if (isResourceApplicable && !formData.resourceId) {
+      errors.resourceId = 'Resource is required.';
+    }
+
+    if (!formData.description.trim()) {
+      errors.description = 'Description is required.';
+    }
+
+    if (!formData.contactPhone.trim()) {
+      errors.contactPhone = 'Contact phone is required.';
+    }
+
+    if (!formData.contactEmail.trim()) {
+      errors.contactEmail = 'Contact email is required.';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const removeAttachment = (indexToRemove) => {
     const nextFiles = attachments.filter((_, index) => index !== indexToRemove);
     setAttachments(nextFiles);
@@ -89,6 +135,11 @@ export default function CreateTicket() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      toast.error('Please fill all required fields.');
+      return;
+    }
 
     const validationError = validateFiles(attachments);
     if (validationError) {
@@ -149,15 +200,24 @@ export default function CreateTicket() {
                 id="title"
                 required 
                 value={formData.title} 
-                onChange={e => setFormData({...formData, title: e.target.value})} 
+                onChange={e => {
+                  setFormData({...formData, title: e.target.value});
+                  clearFieldError('title');
+                }} 
                 placeholder="Brief summary of the issue"
               />
+              {formErrors.title && (
+                <p className="text-sm text-red-600">{formErrors.title}</p>
+              )}
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Select value={formData.category} onValueChange={(val) => setFormData({...formData, category: val})}>
-                <SelectTrigger id="category">
+              <Select value={formData.category} onValueChange={(val) => {
+                setFormData({...formData, category: val});
+                clearFieldError('category');
+              }}>
+                <SelectTrigger id="category" className={formErrors.category ? 'border-red-500 focus:ring-red-500' : ''}>
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -168,12 +228,18 @@ export default function CreateTicket() {
                   <SelectItem value="OTHER">Other</SelectItem>
                 </SelectContent>
               </Select>
+              {formErrors.category && (
+                <p className="text-sm text-red-600">{formErrors.category}</p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="priority">Priority</Label>
-              <Select value={formData.priority} onValueChange={(val) => setFormData({...formData, priority: val})}>
-                <SelectTrigger id="priority">
+              <Select value={formData.priority} onValueChange={(val) => {
+                setFormData({...formData, priority: val});
+                clearFieldError('priority');
+              }}>
+                <SelectTrigger id="priority" className={formErrors.priority ? 'border-red-500 focus:ring-red-500' : ''}>
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
                 <SelectContent>
@@ -183,19 +249,25 @@ export default function CreateTicket() {
                   <SelectItem value="CRITICAL">Critical</SelectItem>
                 </SelectContent>
               </Select>
+              {formErrors.priority && (
+                <p className="text-sm text-red-600">{formErrors.priority}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="resourceId">Related Resource (Optional)</Label>
+              <Label htmlFor="resourceId">Related Resource</Label>
               <Select
                 value={formData.resourceId || 'NONE'}
-                onValueChange={(val) => setFormData({
-                  ...formData,
-                  resourceId: val === 'NONE' ? '' : val,
-                })}
+                onValueChange={(val) => {
+                  setFormData({
+                    ...formData,
+                    resourceId: val === 'NONE' ? '' : val,
+                  });
+                  clearFieldError('resourceId');
+                }}
                 disabled={resourcesLoading}
               >
-                <SelectTrigger id="resourceId">
+                <SelectTrigger id="resourceId" className={formErrors.resourceId ? 'border-red-500 focus:ring-red-500' : ''}>
                   <SelectValue placeholder="Select a resource" />
                 </SelectTrigger>
                 <SelectContent>
@@ -207,6 +279,9 @@ export default function CreateTicket() {
                   ))}
                 </SelectContent>
               </Select>
+              {formErrors.resourceId && (
+                <p className="text-sm text-red-600">{formErrors.resourceId}</p>
+              )}
               {resourcesError && (
                 <p className="text-sm text-red-600">Unable to load resources. You can still submit without selecting one.</p>
               )}
@@ -219,30 +294,48 @@ export default function CreateTicket() {
                 required 
                 className="min-h-[100px]"
                 value={formData.description} 
-                onChange={e => setFormData({...formData, description: e.target.value})} 
+                onChange={e => {
+                  setFormData({...formData, description: e.target.value});
+                  clearFieldError('description');
+                }} 
                 placeholder="Provide detailed information about the issue"
               />
+              {formErrors.description && (
+                <p className="text-sm text-red-600">{formErrors.description}</p>
+              )}
             </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="contactPhone">Contact Phone (Optional)</Label>
+                <Label htmlFor="contactPhone">Contact Phone</Label>
                 <Input 
                   id="contactPhone"
                   value={formData.contactPhone} 
-                  onChange={e => setFormData({...formData, contactPhone: e.target.value})} 
+                  onChange={e => {
+                    setFormData({...formData, contactPhone: e.target.value});
+                    clearFieldError('contactPhone');
+                  }} 
                   placeholder="e.g. +1234567890"
                 />
+                {formErrors.contactPhone && (
+                  <p className="text-sm text-red-600">{formErrors.contactPhone}</p>
+                )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contactEmail">Contact Email (Optional)</Label>
+                <Label htmlFor="contactEmail">Contact Email</Label>
                 <Input 
                   id="contactEmail"
                   type="email"
                   value={formData.contactEmail} 
-                  onChange={e => setFormData({...formData, contactEmail: e.target.value})} 
+                  onChange={e => {
+                    setFormData({...formData, contactEmail: e.target.value});
+                    clearFieldError('contactEmail');
+                  }} 
                   placeholder="e.g. name@example.com"
                 />
+                {formErrors.contactEmail && (
+                  <p className="text-sm text-red-600">{formErrors.contactEmail}</p>
+                )}
               </div>
             </div>
 
@@ -271,6 +364,7 @@ export default function CreateTicket() {
                         type="button"
                         variant="outline"
                         size="sm"
+                        className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
                         onClick={() => removeAttachment(index)}
                       >
                         Remove
@@ -282,7 +376,14 @@ export default function CreateTicket() {
             </div>
             
             <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
+                onClick={() => navigate(-1)}
+              >
+                Cancel
+              </Button>
               <Button type="submit" disabled={loading}>
                 {loading ? 'Submitting...' : 'Submit Ticket'}
               </Button>
