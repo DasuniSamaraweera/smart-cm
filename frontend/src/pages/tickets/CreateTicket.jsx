@@ -255,7 +255,7 @@ export default function CreateTicket() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="resourceId">Related Resource (Optional)</Label>
+              <Label htmlFor="resourceId">Related Resource</Label>
               <Select
                 value={formData.resourceId || 'NONE'}
                 onValueChange={(val) => {
@@ -307,7 +307,7 @@ export default function CreateTicket() {
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="contactPhone">Contact Phone (Optional)</Label>
+                <Label htmlFor="contactPhone">Contact Phone</Label>
                 <Input 
                   id="contactPhone"
                   value={formData.contactPhone} 
@@ -322,7 +322,7 @@ export default function CreateTicket() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contactEmail">Contact Email (Optional)</Label>
+                <Label htmlFor="contactEmail">Contact Email</Label>
                 <Input 
                   id="contactEmail"
                   type="email"
