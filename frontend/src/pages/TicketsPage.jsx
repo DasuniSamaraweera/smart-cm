@@ -53,25 +53,30 @@ export default function TicketsPage() {
     },
   })
 
-  const title = isAdmin ? 'All Tickets' : isTechnician ? 'Assigned Tickets' : 'My Tickets'
+  const title = isTechnician ? 'Assigned Tickets' : 'All Tickets'
   const subtitle = isAdmin
-    ? 'Review all raised issues and assign them to technicians.'
+    ? 'View and manage all tickets in the system.'
     : isTechnician
-      ? 'Track and work on tickets assigned to you.'
-      : 'Track issues you have reported.'
+      ? 'View tickets assigned to you.'
+      : 'View all tickets you have reported.'
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-          <p className="text-muted-foreground mt-1">{subtitle}</p>
+      <div className="relative overflow-hidden rounded-3xl border border-indigo-100/70 bg-gradient-to-r from-indigo-50 via-sky-50 to-cyan-50 px-6 py-7 shadow-sm">
+        <div className="pointer-events-none absolute -left-10 top-1/2 h-28 w-28 -translate-y-1/2 rounded-full bg-indigo-200/25 blur-2xl" />
+        <div className="pointer-events-none absolute -right-14 top-0 h-36 w-36 rounded-full bg-sky-200/30 blur-2xl" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-500">Ticket Workspace</p>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">{title}</h1>
+            <p className="mt-2 text-base text-slate-600">{subtitle}</p>
+          </div>
+          {isRegularUser && (
+            <Button className="h-11 rounded-xl px-5 shadow-sm" onClick={() => navigate('/tickets/create')}>
+              <PlusCircle className="mr-2 h-4 w-4" /> Create Ticket
+            </Button>
+          )}
         </div>
-        {isRegularUser && (
-          <Button onClick={() => navigate('/tickets/create')}>
-            <PlusCircle className="mr-2 h-4 w-4" /> Create Ticket
-          </Button>
-        )}
       </div>
 
       <Card>
