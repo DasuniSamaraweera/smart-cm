@@ -79,18 +79,6 @@ export default function LoginPage() {
               Continue with Google
             </Button>
 
-            {import.meta.env.DEV && (
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-11 mt-3"
-                onClick={handleDevAdminSignIn}
-                disabled={devSigningIn}
-              >
-                {devSigningIn ? 'Signing in...' : 'Continue as DEV_Loggin (Admin)'}
-              </Button>
-            )}
-
             <p className="text-xs text-center text-muted-foreground mt-6">
               By signing in, you agree to the campus usage policies.
             </p>

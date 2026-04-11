@@ -51,20 +51,20 @@ export default function Sidebar({ collapsed, onToggle }) {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-indigo-100 bg-gradient-to-b from-indigo-600 via-indigo-600 to-violet-600 text-indigo-50 shadow-xl transition-all duration-300',
+        'fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-slate-200 bg-white text-slate-800 shadow-xl transition-all duration-300',
         collapsed ? 'w-[68px]' : 'w-[260px]'
       )}
     >
       {/* Logo */}
-      <div className="flex h-16 items-center border-b border-white/15 px-4">
+      <div className="flex h-16 items-center border-b border-slate-200 px-4">
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white shadow-sm backdrop-blur-sm">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 shadow-sm">
             <GraduationCap className="h-5 w-5" />
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-sm font-bold leading-tight text-white">Smart Campus</span>
-              <span className="text-[10px] leading-tight text-indigo-100/80">Operations Hub</span>
+              <span className="text-sm font-bold leading-tight text-slate-900">Smart Campus</span>
+              <span className="text-[10px] leading-tight text-slate-500">Operations Hub</span>
             </div>
           )}
         </div>
@@ -73,7 +73,7 @@ export default function Sidebar({ collapsed, onToggle }) {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4 px-3">
         {!collapsed && (
-          <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-100/75">
+          <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
             Menu
           </p>
         )}
@@ -86,7 +86,7 @@ export default function Sidebar({ collapsed, onToggle }) {
                     'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
                     isActive
                       ? 'bg-white text-indigo-700 shadow-sm'
-                      : 'text-indigo-100/85 hover:bg-white/15 hover:text-white',
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
                     collapsed && 'justify-center px-2 relative'
                   )}
                 >
@@ -110,9 +110,9 @@ export default function Sidebar({ collapsed, onToggle }) {
 
         {isAdmin && (
           <>
-            <Separator className="my-4 bg-white/15" />
+            <Separator className="my-4 bg-slate-200" />
             {!collapsed && (
-              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-100/75">
+              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
                 Admin
               </p>
             )}
@@ -125,7 +125,7 @@ export default function Sidebar({ collapsed, onToggle }) {
                         'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
                         isActive
                           ? 'bg-white text-indigo-700 shadow-sm'
-                          : 'text-indigo-100/85 hover:bg-white/15 hover:text-white',
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
                         collapsed && 'justify-center px-2'
                       )}
                     >
@@ -172,13 +172,13 @@ export default function Sidebar({ collapsed, onToggle }) {
       </nav>
 
       {/* Collapse toggle */}
-      <div className="border-t border-white/15 p-3">
+      <div className="border-t border-slate-200 p-3">
         <Button
           variant="outline"
           size="sm"
           onClick={onToggle}
           className={cn(
-            'w-full rounded-xl border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white',
+            'w-full rounded-xl border-slate-300 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900',
             collapsed ? 'justify-center' : 'justify-start'
           )}
         >

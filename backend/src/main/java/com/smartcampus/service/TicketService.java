@@ -9,6 +9,7 @@ import com.smartcampus.model.*;
 import com.smartcampus.model.enums.TicketPriority;
 import com.smartcampus.model.enums.TicketStatus;
 import com.smartcampus.model.enums.UserRole;
+import com.smartcampus.model.enums.NotificationType;
 import com.smartcampus.repository.ResourceRepository;
 import com.smartcampus.repository.TicketAttachmentRepository;
 import com.smartcampus.repository.TicketCommentRepository;
@@ -53,6 +54,7 @@ public class TicketService {
     private final UserRepository userRepository;
     private final ResourceRepository resourceRepository;
     private final CurrentUser currentUser;
+    private final NotificationService notificationService;
 
     @Transactional
     public TicketResponse createTicket(TicketRequest request, List<MultipartFile> files) {
@@ -78,7 +80,17 @@ public class TicketService {
         
             saveAttachments(ticket, files, 0);
 
-        return mapToResponse(ticketRepository.save(ticket));
+        Ticket saved = ticketRepository.save(ticket);
+        List<User> admins = userRepository.findByRole(UserRole.ADMIN);
+        for (User admin : admins) {
+            notificationService.createNotification(
+                admin,
+                "New ticket raised: \"" + ticket.getTitle() + "\" by " + reporter.getName(),
+                NotificationType.TICKET_STATUS_CHANGED,
+                saved.getId()
+            );
+        }
+        return mapToResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -102,11 +114,11 @@ public class TicketService {
 
     @Transactional(readOnly = true)
         public List<TicketSummaryResponse> getTickets(TicketStatus status,
-                              TicketPriority priority,
-                              Long reporterId,
-                              Long assignedToId,
-                              int page,
-                              int size) {
+                            TicketPriority priority,
+                            Long reporterId,
+                            Long assignedToId,
+                            int page,
+                            int size) {
         User user = requireUser();
         Pageable pageable = buildPageable(page, size);
 
@@ -167,7 +179,16 @@ public class TicketService {
             }
         }
         
-        return mapToResponse(ticketRepository.save(ticket));
+        Ticket saved = ticketRepository.save(ticket);
+        if (ticket.getReporter() != null) {
+            notificationService.createNotification(
+                ticket.getReporter(),
+                "Your ticket \"" + ticket.getTitle() + "\" is now " + statusUpdate.getStatus(),
+                NotificationType.TICKET_STATUS_CHANGED,
+                saved.getId()
+            );
+        }
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -195,7 +216,16 @@ public class TicketService {
             ticket.setResolutionNotes(null);
             ticket.setRejectionReason(null);
         }
-        return mapToResponse(ticketRepository.save(ticket));
+        Ticket saved = ticketRepository.save(ticket);
+        if (ticket.getReporter() != null) {
+            notificationService.createNotification(
+                ticket.getReporter(),
+                "A technician has been assigned to your ticket: \"" + ticket.getTitle() + "\"",
+                NotificationType.TICKET_ASSIGNED,
+                saved.getId()
+            );
+        }
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -210,7 +240,16 @@ public class TicketService {
                 .ticket(ticket)
                 .author(author)
                 .build();
-        return mapCommentToResponse(commentRepository.save(comment));
+        CommentResponse response = mapCommentToResponse(commentRepository.save(comment));
+        if (ticket.getReporter() != null && !ticket.getReporter().getId().equals(author.getId())) {
+            notificationService.createNotification(
+                ticket.getReporter(),
+                "New comment on your ticket: \"" + ticket.getTitle() + "\"",
+                NotificationType.TICKET_COMMENT_ADDED,
+                ticket.getId()
+            );
+        }
+        return response;
     }
 
     @Transactional
@@ -224,7 +263,17 @@ public class TicketService {
         }
         
         comment.setContent(request.getContent());
-        return mapCommentToResponse(commentRepository.save(comment));
+        CommentResponse response = mapCommentToResponse(commentRepository.save(comment));
+        Ticket ticket = comment.getTicket();
+        if (ticket.getReporter() != null && !ticket.getReporter().getId().equals(comment.getAuthor().getId())) {
+            notificationService.createNotification(
+                ticket.getReporter(),
+                "A comment was edited on your ticket: \"" + ticket.getTitle() + "\"",
+                NotificationType.TICKET_COMMENT_ADDED,
+                ticket.getId()
+            );
+        }
+        return response;
     }
 
     @Transactional

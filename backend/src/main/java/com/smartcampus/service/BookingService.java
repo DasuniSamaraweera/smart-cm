@@ -14,6 +14,8 @@ import com.smartcampus.model.enums.BookingStatus;
 import com.smartcampus.model.enums.NotificationType;
 import com.smartcampus.model.enums.ResourceStatus;
 import com.smartcampus.repository.BookingRepository;
+import com.smartcampus.model.enums.UserRole;
+import com.smartcampus.repository.UserRepository;
 import com.smartcampus.repository.ResourceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,14 +32,15 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final ResourceRepository resourceRepository;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     // ------------------------------------------------------------------ //
     //  GET – list bookings                                                 //
     //  Users see their own; Admins can filter by userId/resourceId/status  //
     // ------------------------------------------------------------------ //
     public List<BookingResponse> getBookings(User currentUser,
-                                             Long resourceId,
-                                             BookingStatus status) {
+                                            Long resourceId,
+                                            BookingStatus status) {
         boolean isAdmin = currentUser.getRole().name().equals("ADMIN");
         Long userId = isAdmin ? null : currentUser.getId();
 
@@ -95,7 +98,22 @@ public class BookingService {
                 .status(BookingStatus.PENDING)
                 .build();
 
-        return toResponse(bookingRepository.save(booking));
+        Booking savedBooking = bookingRepository.save(booking);
+
+        // Notify all admins about new booking request
+        List<User> admins = userRepository.findByRole(UserRole.ADMIN);
+        for (User admin : admins) {
+            notificationService.createNotification(
+                admin,
+                "New booking request for " + savedBooking.getResource().getName() +
+                " by " + currentUser.getName() + " (" +
+                savedBooking.getStartTime() + " to " + savedBooking.getEndTime() + ")",
+                NotificationType.BOOKING_APPROVED,
+                savedBooking.getId()
+        );
+}
+
+return toResponse(savedBooking);
     }
 
     // ------------------------------------------------------------------ //
