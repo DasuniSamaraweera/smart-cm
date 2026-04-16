@@ -1,59 +1,8 @@
-import { BookOpen, Building2, FlaskConical, Laptop, MonitorPlay, Wrench } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/context/AuthContext'
-
-const resourceTypeCards = [
-  {
-    key: 'electronic-equipment',
-    title: 'Electronic equipment',
-    description: 'Computing devices and AV equipment used across campus services.',
-    icon: Laptop,
-    value: 'Electronic equipment',
-    tone: 'from-sky-500/15 to-blue-500/10',
-  },
-  {
-    key: 'facilities-locations',
-    title: 'Facilities (Locations)',
-    description: 'Physical spaces and locations available for university use.',
-    icon: Building2,
-    value: 'Facilities (Locations)',
-    tone: 'from-cyan-500/15 to-teal-500/10',
-  },
-  {
-    key: 'study-materials',
-    title: 'Study materials',
-    description: 'Books, journals, and learning materials available to users.',
-    icon: BookOpen,
-    value: 'Study materials',
-    tone: 'from-emerald-500/15 to-green-500/10',
-  },
-  {
-    key: 'multimedia-resources',
-    title: 'Multimedia resources',
-    description: 'Streaming and multimedia assets for learning and teaching.',
-    icon: MonitorPlay,
-    value: 'Multimedia resources',
-    tone: 'from-violet-500/15 to-indigo-500/10',
-  },
-  {
-    key: 'laboratory-resources',
-    title: 'Laboratory resources',
-    description: 'Lab spaces and specialized instruments for practical work.',
-    icon: FlaskConical,
-    value: 'Laboratory resources',
-    tone: 'from-amber-500/15 to-orange-500/10',
-  },
-  {
-    key: 'shared-utilities',
-    title: 'Shared utilities',
-    description: 'Shared facilities and services used by multiple groups.',
-    icon: Wrench,
-    value: 'Shared utilities',
-    tone: 'from-rose-500/15 to-pink-500/10',
-  },
-]
+import { resourceTypeCards } from './resourceCategoryConfig'
 
 export default function ResourceTypesPage() {
   const navigate = useNavigate()
@@ -92,7 +41,7 @@ export default function ResourceTypesPage() {
                 <Button
                   type="button"
                   className="mt-4 w-full rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
-                  onClick={() => navigate(`/resources/new?resourceType=${encodeURIComponent(card.value)}`)}
+                  onClick={() => navigate(`/resources/category/${card.key}`)}
                 >
                   Open {card.title}
                 </Button>

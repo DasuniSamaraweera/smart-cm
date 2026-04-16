@@ -6,6 +6,7 @@ import OAuthCallback from '@/pages/OAuthCallback'
 import DashboardPage from '@/pages/DashboardPage'
 import ResourcesPage from '@/pages/resources/ResourcesPage'
 import ResourceTypesPage from '@/pages/resources/ResourceTypesPage'
+import ResourceCategoryPage from '@/pages/resources/ResourceCategoryPage'
 import CreateResourcePage from '@/pages/resources/CreateResourcePage'
 import BookingsPage from '@/pages/BookingsPage'
 import TicketsPage from '@/pages/TicketsPage'
@@ -34,6 +35,7 @@ export default function App() {
       >
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/resources" element={<ResourceTypesPage />} />
+        <Route path="/resources/category/:categoryKey" element={<ResourceCategoryPage />} />
         <Route path="/resources/new" element={<CreateResourcePage />} />
         <Route path="/resources/physical" element={<ResourcesPage />} />
         <Route path="/resources/digital" element={<ResourcesPage />} />
