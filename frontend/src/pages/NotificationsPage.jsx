@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 import {
   Bell, Check, Trash2, CheckCheck,
   CalendarCheck, CalendarX, Calendar,
@@ -13,22 +14,28 @@ import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 
 const TYPE_CONFIG = {
+  BOOKING_CREATED:       { icon: Calendar,      label: 'New Booking',       variant: 'default' },
   BOOKING_APPROVED:      { icon: CalendarCheck, label: 'Booking Approved',  variant: 'default' },
   BOOKING_REJECTED:      { icon: CalendarX,     label: 'Booking Rejected',  variant: 'destructive' },
-  BOOKING_CANCELLED:     { icon: Calendar,       label: 'Booking Cancelled', variant: 'secondary' },
-  TICKET_STATUS_CHANGED: { icon: Wrench,         label: 'Ticket Updated',    variant: 'default' },
-  TICKET_ASSIGNED:       { icon: UserCheck,      label: 'Ticket Assigned',   variant: 'default' },
-  TICKET_COMMENT_ADDED:  { icon: MessageSquare,  label: 'New Comment',       variant: 'secondary' },
+  BOOKING_CANCELLED:     { icon: Calendar,      label: 'Booking Cancelled', variant: 'secondary' },
+  TICKET_STATUS_CHANGED: { icon: Wrench,        label: 'Ticket Updated',    variant: 'default' },
+  TICKET_ASSIGNED:       { icon: UserCheck,     label: 'Ticket Assigned',   variant: 'default' },
+  TICKET_COMMENT_ADDED:  { icon: MessageSquare, label: 'New Comment',       variant: 'secondary' },
 }
+
+const FILTERS = [
+  { key: 'ALL',     label: 'All' },
+  { key: 'BOOKING', label: 'Bookings' },
+  { key: 'TICKET',  label: 'Tickets' },
+]
+
+const BOOKING_TYPES = ['BOOKING_CREATED', 'BOOKING_APPROVED', 'BOOKING_REJECTED', 'BOOKING_CANCELLED']
+const TICKET_TYPES  = ['TICKET_STATUS_CHANGED', 'TICKET_ASSIGNED', 'TICKET_COMMENT_ADDED']
 
 const getNavigationPath = (notification) => {
   const { type, referenceId } = notification
-  if (['BOOKING_APPROVED', 'BOOKING_REJECTED', 'BOOKING_CANCELLED'].includes(type)) {
-    return '/bookings'
-  }
-  if (['TICKET_STATUS_CHANGED', 'TICKET_ASSIGNED', 'TICKET_COMMENT_ADDED'].includes(type)) {
-    return referenceId ? `/tickets/${referenceId}` : '/tickets'
-  }
+  if (BOOKING_TYPES.includes(type)) return '/bookings'
+  if (TICKET_TYPES.includes(type))  return referenceId ? `/tickets/${referenceId}` : '/tickets'
   return null
 }
 
@@ -61,6 +68,7 @@ function NotificationSkeleton() {
 export default function NotificationsPage() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const [activeFilter, setActiveFilter] = useState('ALL')
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ['notifications'],
@@ -98,9 +106,10 @@ export default function NotificationsPage() {
     },
   })
 
+  // ✅ CHANGED — uses filteredNotifications instead of notifications
   const markAllReadMutation = useMutation({
     mutationFn: () => {
-      const unread = notifications.filter(n => !n.read)
+      const unread = filteredNotifications.filter(n => !n.read)
       return Promise.all(unread.map(n => notificationApi.markAsRead(n.id)))
     },
     onSuccess: () => {
@@ -119,8 +128,14 @@ export default function NotificationsPage() {
     if (path) navigate(path)
   }
 
+  const filteredNotifications = notifications.filter(n => {
+    if (activeFilter === 'BOOKING') return BOOKING_TYPES.includes(n.type)
+    if (activeFilter === 'TICKET')  return TICKET_TYPES.includes(n.type)
+    return true
+  })
+
   const unreadCount = unreadData?.count ?? 0
-  const hasUnread = unreadCount > 0
+  const hasUnread = filteredNotifications.some(n => !n.read) // ✅ CHANGED
 
   return (
     <div className="space-y-6">
@@ -129,12 +144,13 @@ export default function NotificationsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             Notifications
-            {hasUnread && (
+            {unreadCount > 0 && (
               <Badge className="bg-blue-500 text-white">{unreadCount} unread</Badge>
             )}
           </h1>
           <p className="text-muted-foreground mt-1">Stay informed about updates and alerts.</p>
         </div>
+        {/* ✅ CHANGED — only shows if filtered view has unread */}
         {hasUnread && (
           <Button
             variant="outline"
@@ -148,22 +164,46 @@ export default function NotificationsPage() {
         )}
       </div>
 
+      {/* Filter tabs */}
+      <div className="flex gap-2">
+        {FILTERS.map(filter => (
+          <Button
+            key={filter.key}
+            variant={activeFilter === filter.key ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setActiveFilter(filter.key)}
+          >
+            {filter.label}
+            <Badge
+              className="ml-2 text-xs"
+              variant={activeFilter === filter.key ? 'secondary' : 'outline'}
+            >
+              {filter.key === 'ALL'     && notifications.length}
+              {filter.key === 'BOOKING' && notifications.filter(n => BOOKING_TYPES.includes(n.type)).length}
+              {filter.key === 'TICKET'  && notifications.filter(n => TICKET_TYPES.includes(n.type)).length}
+            </Badge>
+          </Button>
+        ))}
+      </div>
+
       <Separator />
 
       {/* Content */}
       {isLoading ? (
         <NotificationSkeleton />
-      ) : notifications.length === 0 ? (
+      ) : filteredNotifications.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-20">
             <Bell className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-medium">No notifications</h3>
-            <p className="text-sm text-muted-foreground mt-1">You're all caught up!</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {activeFilter === 'ALL' ? "You're all caught up!" : `No ${activeFilter.toLowerCase()} notifications.`}
+            </p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
-          {notifications.map((n) => {
+          {filteredNotifications.map((n) => {
             const config = TYPE_CONFIG[n.type]
             const path = getNavigationPath(n)
             return (
