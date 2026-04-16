@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
@@ -18,46 +18,70 @@ import {
 } from '@/components/ui/select'
 
 const resourceTypeOptions = [
-  { value: 'PHYSICAL', label: 'Physical Resources' },
-  { value: 'DIGITAL', label: 'Digital Resources' },
+  { value: 'Electronic equipment', label: 'Electronic equipment' },
+  { value: 'Facilities (Locations)', label: 'Facilities (Locations)' },
+  { value: 'Study materials', label: 'Study materials' },
+  { value: 'Multimedia resources', label: 'Multimedia resources' },
+  { value: 'Laboratory resources', label: 'Laboratory resources' },
+  { value: 'Shared utilities', label: 'Shared utilities' },
 ]
 
 const subcategoryOptions = {
-  PHYSICAL: [
-    'Academic Spaces',
-    'Laboratory Spaces',
-    'Library & Study Spaces',
+  'Electronic equipment': [
     'Computing & AV Equipment',
     'Laboratory Equipment & Instruments',
-    'Sports & Recreation Facilities',
+  ],
+  'Facilities (Locations)': [
+    'Academic Spaces',
     'Administrative & Support Spaces',
     'Specialized Facilities',
     'Other Campus Spaces',
+  ],
+  'Study materials': [
+    'E-Books',
+    'E-Journals',
     'Library & Physical Media',
   ],
-  DIGITAL: [
-    'E-Journals',
-    'E-Books',
+  'Multimedia resources': [
     'Multimedia & Streaming Resources',
+  ],
+  'Laboratory resources': [
+    'Laboratory Spaces',
+    'Laboratory Equipment & Instruments',
+    'Specialized Facilities',
+  ],
+  'Shared utilities': [
+    'Sports & Recreation Facilities',
+    'Shared Service Utilities',
   ],
 }
 
 function mapToBackendType(resourceType, subcategory) {
-  if (resourceType === 'PHYSICAL') {
+  if (resourceType === 'Facilities (Locations)') {
     if (subcategory === 'Academic Spaces') return 'LECTURE_HALL'
-    if (subcategory === 'Laboratory Spaces') return 'LAB'
-    if (subcategory === 'Library & Study Spaces') return 'MEETING_ROOM'
-    if (subcategory === 'Computing & AV Equipment') return 'EQUIPMENT'
-    if (subcategory === 'Laboratory Equipment & Instruments') return 'EQUIPMENT'
-    if (subcategory === 'Sports & Recreation Facilities') return 'MEETING_ROOM'
     if (subcategory === 'Administrative & Support Spaces') return 'MEETING_ROOM'
     if (subcategory === 'Specialized Facilities') return 'LECTURE_HALL'
     if (subcategory === 'Other Campus Spaces') return 'MEETING_ROOM'
-    if (subcategory === 'Library & Physical Media') return 'EQUIPMENT'
     return 'MEETING_ROOM'
   }
 
-  if (resourceType === 'DIGITAL') {
+  if (resourceType === 'Laboratory resources') {
+    if (subcategory === 'Laboratory Spaces') return 'LAB'
+    if (subcategory === 'Laboratory Equipment & Instruments') return 'EQUIPMENT'
+    if (subcategory === 'Specialized Facilities') return 'LAB'
+    return 'LAB'
+  }
+
+  if (resourceType === 'Shared utilities') {
+    if (subcategory === 'Sports & Recreation Facilities') return 'MEETING_ROOM'
+    return 'MEETING_ROOM'
+  }
+
+  if (
+    resourceType === 'Electronic equipment'
+    || resourceType === 'Study materials'
+    || resourceType === 'Multimedia resources'
+  ) {
     return 'EQUIPMENT'
   }
 
@@ -66,12 +90,18 @@ function mapToBackendType(resourceType, subcategory) {
 
 export default function CreateResourcePage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
   const { isAdmin } = useAuth()
 
+  const selectedType = searchParams.get('resourceType')
+  const validTypeValues = resourceTypeOptions.map((option) => option.value)
+  const initialResourceType = validTypeValues.includes(selectedType) ? selectedType : resourceTypeOptions[0].value
+  const initialResourceSubcategory = (subcategoryOptions[initialResourceType] || [])[0] || ''
+
   const [form, setForm] = useState({
-    resourceType: 'PHYSICAL',
-    resourceSubcategory: 'Academic Spaces',
+    resourceType: initialResourceType,
+    resourceSubcategory: initialResourceSubcategory,
     resource: '',
     availableDate: '',
     availableFromTime: '',
@@ -93,6 +123,7 @@ export default function CreateResourcePage() {
       'Computing & AV Equipment',
       'Laboratory Equipment & Instruments',
       'Library & Physical Media',
+      'Shared Service Utilities',
       'E-Journals',
       'E-Books',
       'Multimedia & Streaming Resources',
