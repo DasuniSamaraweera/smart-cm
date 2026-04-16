@@ -1,4 +1,4 @@
-import { BookOpen, Building2, FlaskConical, Laptop, MonitorPlay, Wrench } from 'lucide-react'
+import { BookOpen, Building2, CircleEllipsis, FlaskConical, Laptop, MonitorPlay, Wrench } from 'lucide-react'
 
 export const resourceTypeCards = [
   {
@@ -48,6 +48,14 @@ export const resourceTypeCards = [
     icon: Wrench,
     value: 'Shared utilities',
     tone: 'from-rose-500/15 to-pink-500/10',
+  },
+  {
+    key: 'other',
+    title: 'Other',
+    description: 'Other resources that do not fit predefined categories.',
+    icon: CircleEllipsis,
+    value: 'Other',
+    tone: 'from-slate-500/15 to-zinc-500/10',
   },
 ]
 

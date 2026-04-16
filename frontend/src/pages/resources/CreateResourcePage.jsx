@@ -24,6 +24,7 @@ const resourceTypeOptions = [
   { value: 'Multimedia resources', label: 'Multimedia resources' },
   { value: 'Laboratory resources', label: 'Laboratory resources' },
   { value: 'Shared utilities', label: 'Shared utilities' },
+  { value: 'Other', label: 'Other' },
 ]
 
 const subcategoryOptions = {
@@ -54,6 +55,9 @@ const subcategoryOptions = {
     'Sports & Recreation Facilities',
     'Shared Service Utilities',
   ],
+  Other: [
+    'General',
+  ],
 }
 
 function mapToBackendType(resourceType, subcategory) {
@@ -81,6 +85,7 @@ function mapToBackendType(resourceType, subcategory) {
     resourceType === 'Electronic equipment'
     || resourceType === 'Study materials'
     || resourceType === 'Multimedia resources'
+    || resourceType === 'Other'
   ) {
     return 'EQUIPMENT'
   }
