@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, CalendarDays, Clock3, MapPin, Users } from 'lucide-react'
+import { ArrowLeft, CalendarDays, CalendarPlus, Clock3, MapPin, Phone, User, Users } from 'lucide-react'
 import { resourceApi } from '@/api/endpoints'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -61,6 +61,14 @@ export default function ResourceCategoryPage() {
     const selected = normalizeText(selectedCategory.value)
     return allResources.filter((resource) => normalizeText(resource.resourceCategory) === selected)
   }, [allResources, selectedCategory])
+
+  const handleBookNow = (resource) => {
+    const query = new URLSearchParams({
+      resourceId: String(resource.id),
+      resourceName: resource.name,
+    })
+    navigate(`/bookings?${query.toString()}`)
+  }
 
   if (!selectedCategory) {
     return (
@@ -143,7 +151,27 @@ export default function ResourceCategoryPage() {
                       {formatTimeLabel(resource.availabilityStart)} - {formatTimeLabel(resource.availabilityEnd)}
                     </span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-slate-500" />
+                    <span>{resource.contactPerson || 'Contact person not set'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-slate-500" />
+                    <span>{resource.contactNumber || 'Contact number not set'}</span>
+                  </div>
                 </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2 rounded-xl border-slate-300"
+                  onClick={() => handleBookNow(resource)}
+                  disabled={resource.status !== 'ACTIVE'}
+                >
+                  <CalendarPlus className="h-4 w-4" />
+                  Book Now
+                </Button>
               </CardContent>
             </Card>
           ))}
