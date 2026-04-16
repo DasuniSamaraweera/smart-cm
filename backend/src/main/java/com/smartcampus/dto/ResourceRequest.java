@@ -27,6 +27,14 @@ public class ResourceRequest {
 
     private String description;
 
+    private String resourceCategory;
+
+    private String resourceSubcategory;
+
+    private String contactPerson;
+
+    private String contactNumber;
+
     @NotNull(message = "Availability date is required")
     private LocalDate availabilityDate;
 

@@ -37,6 +37,18 @@ public class Resource {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(length = 50)
+    private String resourceCategory;
+
+    @Column(length = 120)
+    private String resourceSubcategory;
+
+    @Column(length = 120)
+    private String contactPerson;
+
+    @Column(length = 40)
+    private String contactNumber;
+
     private LocalDate availabilityDate;
 
     private LocalTime availabilityStart;

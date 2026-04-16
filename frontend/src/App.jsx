@@ -5,6 +5,8 @@ import LoginPage from '@/pages/LoginPage'
 import OAuthCallback from '@/pages/OAuthCallback'
 import DashboardPage from '@/pages/DashboardPage'
 import ResourcesPage from '@/pages/resources/ResourcesPage'
+import ResourceTypesPage from '@/pages/resources/ResourceTypesPage'
+import CreateResourcePage from '@/pages/resources/CreateResourcePage'
 import BookingsPage from '@/pages/BookingsPage'
 import TicketsPage from '@/pages/TicketsPage'
 import MyTickets from '@/pages/tickets/MyTickets'
@@ -31,7 +33,10 @@ export default function App() {
         }
       >
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/resources" element={<ResourcesPage />} />
+        <Route path="/resources" element={<ResourceTypesPage />} />
+        <Route path="/resources/new" element={<CreateResourcePage />} />
+        <Route path="/resources/physical" element={<ResourcesPage />} />
+        <Route path="/resources/digital" element={<ResourcesPage />} />
         <Route path="/bookings" element={<BookingsPage />} />
         <Route path="/tickets" element={<TicketsPage />} />
         <Route path="/tickets/my" element={<MyTickets />} />

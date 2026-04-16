@@ -61,6 +61,10 @@ public class ResourceService {
                 .capacity(request.getCapacity())
                 .location(request.getLocation())
                 .description(request.getDescription())
+            .resourceCategory(request.getResourceCategory())
+            .resourceSubcategory(request.getResourceSubcategory())
+            .contactPerson(request.getContactPerson())
+            .contactNumber(request.getContactNumber())
                 .availabilityDate(request.getAvailabilityDate())
                 .availabilityStart(request.getAvailabilityStart())
                 .availabilityEnd(request.getAvailabilityEnd())
@@ -80,6 +84,18 @@ public class ResourceService {
         resource.setCapacity(request.getCapacity());
         resource.setLocation(request.getLocation());
         resource.setDescription(request.getDescription());
+        if (request.getResourceCategory() != null) {
+            resource.setResourceCategory(request.getResourceCategory());
+        }
+        if (request.getResourceSubcategory() != null) {
+            resource.setResourceSubcategory(request.getResourceSubcategory());
+        }
+        if (request.getContactPerson() != null) {
+            resource.setContactPerson(request.getContactPerson());
+        }
+        if (request.getContactNumber() != null) {
+            resource.setContactNumber(request.getContactNumber());
+        }
         resource.setAvailabilityDate(request.getAvailabilityDate());
         resource.setAvailabilityStart(request.getAvailabilityStart());
         resource.setAvailabilityEnd(request.getAvailabilityEnd());
@@ -106,6 +122,10 @@ public class ResourceService {
                 .capacity(resource.getCapacity())
                 .location(resource.getLocation())
                 .description(resource.getDescription())
+                .resourceCategory(resource.getResourceCategory())
+                .resourceSubcategory(resource.getResourceSubcategory())
+                .contactPerson(resource.getContactPerson())
+                .contactNumber(resource.getContactNumber())
                 .availabilityDate(resource.getAvailabilityDate())
                 .availabilityStart(resource.getAvailabilityStart())
                 .availabilityEnd(resource.getAvailabilityEnd())
