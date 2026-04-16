@@ -8,6 +8,7 @@ import ResourcesPage from '@/pages/resources/ResourcesPage'
 import ResourceTypesPage from '@/pages/resources/ResourceTypesPage'
 import ResourceCategoryPage from '@/pages/resources/ResourceCategoryPage'
 import CreateResourcePage from '@/pages/resources/CreateResourcePage'
+import DigitalLibraryPage from '@/pages/resources/DigitalLibraryPage'
 import BookingsPage from '@/pages/BookingsPage'
 import TicketsPage from '@/pages/TicketsPage'
 import MyTickets from '@/pages/tickets/MyTickets'
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/resources" element={<ResourceTypesPage />} />
         <Route path="/resources/category/:categoryKey" element={<ResourceCategoryPage />} />
         <Route path="/resources/new" element={<CreateResourcePage />} />
+        <Route path="/digital-library" element={<DigitalLibraryPage />} />
         <Route path="/resources/physical" element={<ResourcesPage />} />
         <Route path="/resources/digital" element={<ResourcesPage />} />
         <Route path="/bookings" element={<BookingsPage />} />

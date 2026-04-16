@@ -1,12 +1,20 @@
-import { useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMemo, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, CalendarDays, CalendarPlus, Clock3, MapPin, Phone, User, Users } from 'lucide-react'
+import { toast } from 'sonner'
+import { ArrowLeft, CalendarDays, CalendarPlus, Clock3, MapPin, MoreHorizontal, Pencil, Phone, Trash2, User, Users } from 'lucide-react'
 import { resourceApi } from '@/api/endpoints'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/context/AuthContext'
+import ResourceFormDialog from './ResourceFormDialog'
 import { getResourceCategoryByKey } from './resourceCategoryConfig'
 
 function formatDateLabel(dateText) {
@@ -45,8 +53,11 @@ function normalizeText(value) {
 
 export default function ResourceCategoryPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { categoryKey } = useParams()
   const { isAdmin } = useAuth()
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingResource, setEditingResource] = useState(null)
 
   const selectedCategory = getResourceCategoryByKey(categoryKey)
 
@@ -61,6 +72,26 @@ export default function ResourceCategoryPage() {
     const selected = normalizeText(selectedCategory.value)
     return allResources.filter((resource) => normalizeText(resource.resourceCategory) === selected)
   }, [allResources, selectedCategory])
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => resourceApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['resources'] })
+      toast.success('Resource deleted successfully')
+    },
+    onError: () => toast.error('Failed to delete resource'),
+  })
+
+  const handleEdit = (resource) => {
+    setEditingResource(resource)
+    setDialogOpen(true)
+  }
+
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this resource?')) {
+      deleteMutation.mutate(id)
+    }
+  }
 
   const handleBookNow = (resource) => {
     const query = new URLSearchParams({
@@ -127,9 +158,33 @@ export default function ResourceCategoryPage() {
                     <h2 className="text-lg font-semibold text-slate-900">{resource.name}</h2>
                     <p className="mt-1 text-sm text-slate-600">{resource.resourceSubcategory || 'No subcategory'}</p>
                   </div>
-                  <Badge className="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100">
-                    {resource.status || 'UNKNOWN'}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge className="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100">
+                      {resource.status || 'UNKNOWN'}
+                    </Badge>
+                    {isAdmin && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEdit(resource)}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(resource.id)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-1.5 text-sm text-slate-600">
@@ -177,6 +232,12 @@ export default function ResourceCategoryPage() {
           ))}
         </div>
       )}
+
+      <ResourceFormDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        resource={editingResource}
+      />
     </div>
   )
 }
