@@ -19,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.smartcampus.service.NotificationService;
 
 import java.util.Optional;
 
@@ -50,6 +51,9 @@ class TicketServiceStatusWorkflowTest {
 
     @Mock
     private CurrentUser currentUser;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private TicketService ticketService;
