@@ -41,7 +41,7 @@ export default function ResourceTypesPage() {
                 <Button
                   type="button"
                   className="mt-4 w-full rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
-                  onClick={() => navigate(card.key === 'digital-resources' ? '/digital-library' : `/resources/category/${card.key}`)}
+                  onClick={() => navigate(`/resources/category/${card.key}`)}
                 >
                   Open {card.title}
                 </Button>

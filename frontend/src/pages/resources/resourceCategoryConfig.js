@@ -18,14 +18,6 @@ export const resourceTypeCards = [
     tone: 'from-cyan-500/15 to-teal-500/10',
   },
   {
-    key: 'digital-resources',
-    title: 'Digital resources',
-    description: 'Digital library materials including e-books, journals, and media.',
-    icon: BookOpen,
-    value: 'Study materials',
-    tone: 'from-emerald-500/15 to-green-500/10',
-  },
-  {
     key: 'study-materials',
     title: 'Study materials',
     description: 'Books, journals, and learning materials available to users.',
