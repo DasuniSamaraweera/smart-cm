@@ -45,6 +45,7 @@ const roleBadge = {
   ADMIN: { variant: 'destructive', label: 'Admin' },
   USER: { variant: 'secondary', label: 'User' },
   TECHNICIAN: { variant: 'warning', label: 'Technician' },
+  LECTURER: { variant: 'outline', label: 'Academic Staff' },
 }
 
 export default function UserManagementPage() {
@@ -226,6 +227,7 @@ export default function UserManagementPage() {
                             <SelectItem value="USER">User</SelectItem>
                             <SelectItem value="ADMIN">Admin</SelectItem>
                             <SelectItem value="TECHNICIAN">Technician</SelectItem>
+                            <SelectItem value="LECTURER">Academic Staff</SelectItem>
                           </SelectContent>
                         </Select>
                       )}
@@ -308,6 +310,7 @@ export default function UserManagementPage() {
                   <SelectItem value="USER">User</SelectItem>
                   <SelectItem value="ADMIN">Admin</SelectItem>
                   <SelectItem value="TECHNICIAN">Technician</SelectItem>
+                  <SelectItem value="LECTURER">Academic Staff</SelectItem>
                 </SelectContent>
               </Select>
             </div>
