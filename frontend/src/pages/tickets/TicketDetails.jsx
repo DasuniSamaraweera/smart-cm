@@ -120,8 +120,8 @@ export default function TicketDetails() {
   const fetchAssignees = async () => {
     try {
       setAssigneeLoadError('');
-      const res = await authApi.getUsers();
-      setAssignees(res.data.filter((u) => u.role === 'TECHNICIAN'));
+      const res = await authApi.getTechnicians();
+      setAssignees(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error('Failed to load assignees', err);
       setAssignees([]);

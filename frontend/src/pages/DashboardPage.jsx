@@ -1,4 +1,4 @@
-import { Building2, CalendarCheck, TicketCheck, TrendingUp } from 'lucide-react'
+import { Building2, CalendarCheck, ChevronRight, TicketCheck, TrendingUp } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +12,7 @@ const TICKET_PAGE_SIZE = 100
 const statusVariant = {
   OPEN: 'default',
   IN_PROGRESS: 'warning',
-  RESOLVED: 'secondary',
+  RESOLVED: 'success',
   CLOSED: 'outline',
   REJECTED: 'destructive',
 }
@@ -229,16 +229,32 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-3">
                 {recentTickets.map((ticket) => (
-                  <div key={ticket.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-                    <div className="min-w-0">
-                      <Link to={`/tickets/${ticket.id}`} className="block truncate text-sm font-medium text-slate-900 hover:underline">
-                        {ticket.title}
-                      </Link>
-                      <p className="text-xs text-slate-500">
-                        #{ticket.id} • {new Date(ticket.createdAt).toLocaleDateString()}
-                      </p>
+                  <div
+                    key={ticket.id}
+                    className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 transition-all hover:bg-slate-100/80 hover:shadow-sm"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-200/80 text-slate-500">
+                        <TicketCheck className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <Link
+                          to={`/tickets/${ticket.id}`}
+                          className="block truncate text-sm font-semibold text-slate-900 hover:underline"
+                        >
+                          {ticket.title}
+                        </Link>
+                        <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                          <span>{ticket.id}</span>
+                          <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
+                          <span>{ticket.reporter?.name || 'N/A'}</span>
+                        </div>
+                      </div>
                     </div>
-                    <Badge variant={statusVariant[ticket.status] || 'secondary'}>{ticket.status}</Badge>
+                    <div className="flex shrink-0 items-center gap-3">
+                      <Badge variant={statusVariant[ticket.status] || 'secondary'}>{ticket.status}</Badge>
+                      <ChevronRight className="h-4 w-4 text-slate-400" />
+                    </div>
                   </div>
                 ))}
               </div>
