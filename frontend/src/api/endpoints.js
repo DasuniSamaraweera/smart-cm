@@ -12,6 +12,7 @@ export const authApi = {
   getMe: () => api.get('/api/auth/me'),
   devLogin: () => api.post('/api/public/dev-login'),
   getUsers: () => api.get('/api/auth/users'),
+  getTechnicians: () => api.get('/api/auth/users/technicians'),
   getUser: (id) => api.get(`/api/auth/users/${id}`),
   updateUser: (id, data) => api.put(`/api/auth/users/${id}`, data),
   updateRole: (id, role) => api.put(`/api/auth/users/${id}/role`, null, { params: { role } }),
