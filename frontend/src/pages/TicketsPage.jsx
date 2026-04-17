@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { PlusCircle, TicketCheck, User, UserCheck } from 'lucide-react'
+import { AlertTriangle, PlusCircle, Tag, TicketCheck, User, UserCheck } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -205,11 +205,17 @@ export default function TicketsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-xl border border-slate-100 px-3 py-2">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Category</p>
-                    <p className="mt-1 truncate text-sm font-medium text-slate-800">{ticket.category || 'N/A'}</p>
+                    <div className="mt-1 flex items-center gap-2 text-sm font-medium text-slate-800">
+                      <Tag className="h-4 w-4 text-slate-500" />
+                      <span className="truncate">{ticket.category || 'N/A'}</span>
+                    </div>
                   </div>
                   <div className="rounded-xl border border-slate-100 px-3 py-2">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Priority</p>
-                    <p className="mt-1 truncate text-sm font-medium text-slate-800">{ticket.priority}</p>
+                    <div className="mt-1 flex items-center gap-2 text-sm font-medium text-slate-800">
+                      <AlertTriangle className="h-4 w-4 text-amber-500" />
+                      <span className="truncate">{ticket.priority}</span>
+                    </div>
                   </div>
                 </div>
 
