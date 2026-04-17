@@ -29,31 +29,75 @@ const resourceTypeOptions = [
 
 const subcategoryOptions = {
   'Electronic equipment': [
-    'Computing & AV Equipment',
-    'Laboratory Equipment & Instruments',
+    'Laptops',
+    'Desktop Computers',
+    'Projectors',
+    'Tablets / iPads',
+    'Digital Cameras',
+    'Microphones (wired/wireless)',
+    'Speakers / Sound Systems',
+    'Smart Boards / Interactive Displays',
+    'Other',
   ],
   'Facilities (Locations)': [
-    'Academic Spaces',
-    'Administrative & Support Spaces',
-    'Specialized Facilities',
-    'Other Campus Spaces',
+    'Lecture Halls',
+    'Auditorium',
+    'Meeting Rooms',
+    'Computer Labs',
+    'Study Rooms',
+    'Conference Rooms',
+    'Seminar Halls',
+    'Outdoor Event Grounds',
+    'Other',
   ],
   'Study materials': [
-    'E-Books',
-    'E-Journals',
-    'Library & Physical Media',
+    'Textbooks',
+    'Reference Books',
+    'Past Papers',
+    'Lecture Notes (Digital/PDF)',
+    'Research Papers / Journals',
+    'E-books',
+    'Course Modules',
+    'Printed Handouts',
+    'Exam Papers (Current / Unreleased)',
+    'Marking Schemes & Answer Keys',
+    'Confidential Course Materials (Draft Notes / Internal Content)',
+    'Student Assessment Records & Grading Sheets',
+    'Research Data Sets (Restricted / Ongoing Research)',
+    'Other',
   ],
   'Multimedia resources': [
-    'Multimedia & Streaming Resources',
+    'Educational Videos',
+    'Recorded Lectures',
+    'Webinars / Online Sessions',
+    'Podcasts',
+    'Documentaries',
+    'Animation / Simulation Videos',
+    'Virtual Reality (VR) Content',
+    'Audio Books',
+    'Other',
   ],
   'Laboratory resources': [
-    'Laboratory Spaces',
-    'Laboratory Equipment & Instruments',
-    'Specialized Facilities',
+    'Microscopes',
+    'Lab Computers (High-performance)',
+    'Circuit Boards / Electronics Kits',
+    'Chemical Lab Equipment Sets',
+    '3D Printers',
+    'Robotics Kits',
+    'Measurement Instruments (e.g., multimeters)',
+    'Safety Equipment (lab coats, goggles)',
+    'Other',
   ],
   'Shared utilities': [
-    'Sports & Recreation Facilities',
-    'Shared Service Utilities',
+    'Printing Services / Printers',
+    'Scanners',
+    'Photocopy Machines',
+    'High-speed Internet Access (Wi-Fi Hotspots)',
+    'Charging Stations',
+    'Lockers / Storage Units',
+    'Shuttle / Transport Services',
+    'Power Backup (Generators / UPS access)',
+    'Other',
   ],
   Other: [
     'General',
@@ -62,23 +106,23 @@ const subcategoryOptions = {
 
 function mapToBackendType(resourceType, subcategory) {
   if (resourceType === 'Facilities (Locations)') {
-    if (subcategory === 'Academic Spaces') return 'LECTURE_HALL'
-    if (subcategory === 'Administrative & Support Spaces') return 'MEETING_ROOM'
-    if (subcategory === 'Specialized Facilities') return 'LECTURE_HALL'
-    if (subcategory === 'Other Campus Spaces') return 'MEETING_ROOM'
+    if (subcategory === 'Lecture Halls' || subcategory === 'Auditorium' || subcategory === 'Seminar Halls') {
+      return 'LECTURE_HALL'
+    }
+    if (subcategory === 'Computer Labs') return 'LAB'
     return 'MEETING_ROOM'
   }
 
   if (resourceType === 'Laboratory resources') {
-    if (subcategory === 'Laboratory Spaces') return 'LAB'
-    if (subcategory === 'Laboratory Equipment & Instruments') return 'EQUIPMENT'
-    if (subcategory === 'Specialized Facilities') return 'LAB'
-    return 'LAB'
+    if (subcategory === 'Lab Computers (High-performance)') return 'LAB'
+    return 'EQUIPMENT'
   }
 
   if (resourceType === 'Shared utilities') {
-    if (subcategory === 'Sports & Recreation Facilities') return 'MEETING_ROOM'
-    return 'MEETING_ROOM'
+    if (subcategory === 'Shuttle / Transport Services' || subcategory === 'Power Backup (Generators / UPS access)') {
+      return 'MEETING_ROOM'
+    }
+    return 'EQUIPMENT'
   }
 
   if (
@@ -124,16 +168,8 @@ export default function CreateResourcePage() {
   )
 
   const isEquipmentLike = useMemo(
-    () => [
-      'Computing & AV Equipment',
-      'Laboratory Equipment & Instruments',
-      'Library & Physical Media',
-      'Shared Service Utilities',
-      'E-Journals',
-      'E-Books',
-      'Multimedia & Streaming Resources',
-    ].includes(form.resourceSubcategory),
-    [form.resourceSubcategory],
+    () => form.resourceType !== 'Facilities (Locations)',
+    [form.resourceType],
   )
 
   const mutation = useMutation({
