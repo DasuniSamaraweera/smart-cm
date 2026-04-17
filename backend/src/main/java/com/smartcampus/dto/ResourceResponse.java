@@ -18,6 +18,10 @@ public class ResourceResponse {
     private Integer capacity;
     private String location;
     private String description;
+    private String resourceCategory;
+    private String resourceSubcategory;
+    private String contactPerson;
+    private String contactNumber;
     private LocalDate availabilityDate;
     private LocalTime availabilityStart;
     private LocalTime availabilityEnd;
