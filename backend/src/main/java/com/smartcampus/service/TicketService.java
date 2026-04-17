@@ -225,14 +225,6 @@ public class TicketService {
                 saved.getId()
             );
         }
-
-        notificationService.createNotification(
-            assignee,
-            "You have been assigned to ticket: \"" + ticket.getTitle() + "\"",
-            NotificationType.TICKET_ASSIGNED,
-            saved.getId()
-);
-
         return mapToResponse(saved);
     }
 
