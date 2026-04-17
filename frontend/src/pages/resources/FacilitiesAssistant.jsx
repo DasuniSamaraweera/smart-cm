@@ -17,8 +17,75 @@ function detectType(query) {
 }
 
 function detectCapacity(query) {
-  const match = query.match(/(\d{1,4})/)
+  const match = query.match(/(?:for|capacity|amount|at least)?\s*(\d{1,4})\b/i)
   return match ? Number(match[1]) : null
+}
+
+function detectLocation(query) {
+  const normalized = String(query || '').replace(/[?.,!;:]+$/g, '').trim()
+
+  const marker = normalized.match(
+    /(?:in|at)\s+([a-z0-9\s-]{2,}?)(?=\s+(?:for|with|status|capacity|amount|available|active|out|named|called)\b|[?.,!;:]|$)/i,
+  )
+  if (marker) {
+    return marker[1].trim()
+  }
+
+  const floorMarker = normalized.match(/\b(floor\s*\d{1,2})\b/i)
+  return floorMarker ? floorMarker[1].trim() : ''
+}
+
+function detectResourceName(query) {
+  const quoted = query.match(/["']([^"']{2,})["']/)
+  if (quoted) return quoted[1].trim()
+
+  const marker = query.match(/(?:named|name|called)\s+(.+?)(?=\s+(?:in|at|for|with|status|capacity|amount|available|active|out)\b|$)/i)
+  return marker ? marker[1].trim() : ''
+}
+
+function detectSubcategory(query, subcategoryOptions) {
+  const q = query.toLowerCase()
+  return subcategoryOptions.find((item) => q.includes(item.toLowerCase())) || ''
+}
+
+function normalizeTokens(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+}
+
+function containsAllTokens(haystack, needle) {
+  const haystackTokens = normalizeTokens(haystack)
+  const needleTokens = normalizeTokens(needle)
+  if (needleTokens.length === 0) return true
+  return needleTokens.every((token) => haystackTokens.includes(token))
+}
+
+function detectStatusFlags(query) {
+  const q = query.toLowerCase()
+  const wantsOutOfService = q.includes('out of service') || q.includes('unavailable') || q.includes('inactive')
+  const wantsActive = q.includes('active') || q.includes('available')
+  return { wantsActive, wantsOutOfService }
+}
+
+function detectNameFromResources(query, resources) {
+  const q = query.toLowerCase()
+  const hits = resources
+    .map((r) => String(r.name || '').trim())
+    .filter((name) => name && q.includes(name.toLowerCase()))
+    .sort((a, b) => b.length - a.length)
+  return hits[0] || ''
+}
+
+function detectSubcategoryFromResources(query, resources) {
+  const q = query.toLowerCase()
+  const hits = resources
+    .map((r) => String(r.resourceSubcategory || '').trim())
+    .filter((subcategory) => subcategory && q.includes(subcategory.toLowerCase()))
+    .sort((a, b) => b.length - a.length)
+  return hits[0] || ''
 }
 
 function buildResourceReply(query, resources) {
@@ -40,14 +107,24 @@ function buildResourceReply(query, resources) {
 
   const requestedType = detectType(q)
   const requestedCapacity = detectCapacity(q)
-  const wantsOutOfService = q.includes('out of service') || q.includes('unavailable')
-  const wantsActive =
-    q.includes('active') || q.includes('available') || (!wantsOutOfService && q.includes('show'))
+  const requestedLocation = detectLocation(query)
+  const requestedName = detectResourceName(query) || detectNameFromResources(query, resources)
+  const { wantsOutOfService, wantsActive } = detectStatusFlags(query)
 
   let filtered = resources
 
+  if (requestedName) {
+    const nameQuery = requestedName.toLowerCase()
+    filtered = filtered.filter((r) => containsAllTokens(String(r.name || ''), nameQuery))
+  }
+
   if (requestedType) {
     filtered = filtered.filter((r) => r.type === requestedType)
+  }
+
+  if (requestedLocation) {
+    const locationQuery = requestedLocation.toLowerCase()
+    filtered = filtered.filter((r) => containsAllTokens(String(r.location || ''), locationQuery))
   }
 
   if (requestedCapacity !== null) {
@@ -91,7 +168,88 @@ function buildResourceReply(query, resources) {
   }
 }
 
-export default function FacilitiesAssistant({ resources, onApplyFilters }) {
+function buildCategoryReply(query, resources, subcategoryOptions) {
+  const q = query.toLowerCase().trim()
+
+  if (!q) {
+    return {
+      text: 'Ask about this resource type. Example: "show projector in block a" or "items for 30".',
+      filterPatch: null,
+    }
+  }
+
+  if (q.includes('help') || q.includes('what can you do')) {
+    return {
+      text: 'I can narrow this category by resource name, category, location, and amount/capacity. Try: "named projector" or "meeting rooms in block b for 40".',
+      filterPatch: null,
+    }
+  }
+
+  const requestedCapacity = detectCapacity(q)
+  const requestedLocation = detectLocation(query)
+  const requestedName = detectResourceName(query) || detectNameFromResources(query, resources)
+  const requestedSubcategory = detectSubcategory(query, subcategoryOptions) || detectSubcategoryFromResources(query, resources)
+  const { wantsOutOfService, wantsActive } = detectStatusFlags(query)
+
+  let filtered = resources
+
+  if (requestedName) {
+    const nameQuery = requestedName.toLowerCase()
+    filtered = filtered.filter((r) => containsAllTokens(String(r.name || ''), nameQuery))
+  }
+
+  if (requestedSubcategory) {
+    filtered = filtered.filter((r) => String(r.resourceSubcategory || '').toLowerCase() === requestedSubcategory.toLowerCase())
+  }
+
+  if (requestedLocation) {
+    const locationQuery = requestedLocation.toLowerCase()
+    filtered = filtered.filter((r) => containsAllTokens(String(r.location || ''), locationQuery))
+  }
+
+  if (requestedCapacity !== null) {
+    filtered = filtered.filter((r) => (r.capacity ?? 0) >= requestedCapacity)
+  }
+
+  if (wantsOutOfService) {
+    filtered = filtered.filter((r) => r.status === 'OUT_OF_SERVICE')
+  } else if (wantsActive) {
+    filtered = filtered.filter((r) => r.status === 'ACTIVE')
+  }
+
+  if (filtered.length === 0) {
+    return {
+      text: 'No matches in this category. Try removing one condition or using a broader location/name.',
+      filterPatch: {
+        preferredName: requestedName,
+        preferredSubcategory: requestedSubcategory,
+        preferredLocation: requestedLocation,
+        desiredCapacity: requestedCapacity,
+      },
+    }
+  }
+
+  const top = filtered.slice(0, 4)
+  const list = top
+    .map((r) => {
+      const subText = r.resourceSubcategory ? ` | ${r.resourceSubcategory}` : ''
+      const capText = r.capacity ? ` | amount/capacity ${r.capacity}` : ''
+      return `- ${r.name}${subText} (${r.location || 'No location'})${capText}`
+    })
+    .join('\n')
+
+  return {
+    text: `Found ${filtered.length} matching item${filtered.length > 1 ? 's' : ''} in this category.\n${list}`,
+    filterPatch: {
+      preferredName: requestedName,
+      preferredSubcategory: requestedSubcategory,
+      preferredLocation: requestedLocation,
+      desiredCapacity: requestedCapacity,
+    },
+  }
+}
+
+export default function FacilitiesAssistant({ resources, onApplyFilters, mode = 'global', subcategoryOptions = [] }) {
   const recognitionRef = useRef(null)
   const transcriptRef = useRef('')
   const [isOpen, setIsOpen] = useState(false)
@@ -100,24 +258,31 @@ export default function FacilitiesAssistant({ resources, onApplyFilters }) {
   const [isVoiceSupported, setIsVoiceSupported] = useState(false)
   const [currentQuestion, setCurrentQuestion] = useState('')
   const [currentReply, setCurrentReply] = useState({
-    text: 'Facilities Assistant is ready. I only answer questions about resources in this module.',
+    text: mode === 'category'
+      ? 'Category Assistant is ready. Ask about name, category, location, or amount/capacity for this resource type.'
+      : 'Facilities Assistant is ready. I only answer questions about resources in this module.',
     filterPatch: null,
   })
 
   const suggestionChips = useMemo(
-    () => ['Show active labs', 'Meeting rooms for 20', 'Out of service resources'],
-    []
+    () => (mode === 'category'
+      ? ['Named projector', 'Items in block a', 'For 30 users']
+      : ['Show active labs', 'Meeting rooms for 20', 'Out of service resources']),
+    [mode]
   )
 
   const sendMessage = useCallback((rawText) => {
     const text = rawText.trim()
     if (!text) return
 
-    const reply = buildResourceReply(text, resources)
+    const reply = mode === 'category'
+      ? buildCategoryReply(text, resources, subcategoryOptions)
+      : buildResourceReply(text, resources)
+
     setCurrentQuestion(text)
     setCurrentReply(reply)
     setMessage('')
-  }, [resources])
+  }, [mode, resources, subcategoryOptions])
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -210,7 +375,7 @@ export default function FacilitiesAssistant({ resources, onApplyFilters }) {
               <div className="flex items-center gap-2">
                 <CardTitle className="flex items-center gap-2 text-base text-slate-900">
                   <Bot className="h-4 w-4" />
-                  Facilities Assistant
+                  {mode === 'category' ? 'Category Assistant' : 'Facilities Assistant'}
                 </CardTitle>
               </div>
               <Button
@@ -284,7 +449,9 @@ export default function FacilitiesAssistant({ resources, onApplyFilters }) {
               <Input
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Ask about facilities (type, status, capacity, location)"
+                placeholder={mode === 'category'
+                  ? 'Ask in this category (name, category, location, amount/capacity)'
+                  : 'Ask about facilities (type, status, capacity, location)'}
                 className="rounded-xl border-slate-200 bg-slate-50"
               />
               {isVoiceSupported && (

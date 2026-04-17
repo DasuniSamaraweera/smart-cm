@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/context/AuthContext'
 import ResourceFormDialog from './ResourceFormDialog'
+import FacilitiesAssistant from './FacilitiesAssistant'
 import { getResourceCategoryByKey } from './resourceCategoryConfig'
 
 function formatDateLabel(dateText) {
@@ -301,6 +302,23 @@ export default function ResourceCategoryPage() {
       .sort((a, b) => b.smartFitScore - a.smartFitScore)
     : resources
 
+  const applyAssistantFilters = (patch) => {
+    setSortMode('SMART_FIT')
+
+    if (Object.prototype.hasOwnProperty.call(patch, 'preferredName')) {
+      setPreferredName(patch.preferredName || '')
+    }
+    if (Object.prototype.hasOwnProperty.call(patch, 'preferredSubcategory')) {
+      setPreferredSubcategory(patch.preferredSubcategory || '')
+    }
+    if (Object.prototype.hasOwnProperty.call(patch, 'preferredLocation')) {
+      setPreferredLocation(patch.preferredLocation || '')
+    }
+    if (Object.prototype.hasOwnProperty.call(patch, 'desiredCapacity')) {
+      setDesiredCapacity(patch.desiredCapacity ? String(patch.desiredCapacity) : '')
+    }
+  }
+
   const deleteMutation = useMutation({
     mutationFn: (id) => resourceApi.delete(id),
     onSuccess: () => {
@@ -566,6 +584,13 @@ export default function ResourceCategoryPage() {
           })}
         </div>
       )}
+
+      <FacilitiesAssistant
+        resources={resources}
+        onApplyFilters={applyAssistantFilters}
+        mode="category"
+        subcategoryOptions={availableSubcategories}
+      />
 
       <ResourceFormDialog
         open={dialogOpen}
