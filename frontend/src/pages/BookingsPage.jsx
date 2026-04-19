@@ -232,9 +232,12 @@ function BookingAnalytics({ bookings }) {
   )
 }
 
-// ─── New Booking Dialog ──────────────────────────────────────────────────────
+// ───  Booking Dialog ──────────────────────────────────────────
 function BookingFormDialog({ open, onClose, preselectedResourceId }) {
   const queryClient = useQueryClient()
+  const [searchParams] = useSearchParams()
+
+  const resourceNameFromUrl = searchParams.get('resourceName')
 
   const [resourceId, setResourceId]      = useState(preselectedResourceId ?? '')
   const [startTime, setStartTime]        = useState('')
@@ -260,6 +263,30 @@ function BookingFormDialog({ open, onClose, preselectedResourceId }) {
   const resources = resourcesData?.content ?? resourcesData ?? []
   const selectedResource = resources.find(r => String(r.id) === String(resourceId))
 
+  // ─── Determine if attendees field should be shown ─────────────────────────
+  // Resource types that need expected attendees (venues/facilities)
+  const VENUE_TYPES = ['LECTURE_HALL', 'LAB', 'MEETING_ROOM']
+  const showAttendeesField = selectedResource && VENUE_TYPES.includes(selectedResource.type)
+
+  // Equipment types don't need attendees
+  const isEquipmentType = selectedResource && ['EQUIPMENT'].includes(selectedResource.type)
+
+  // ─── Availability helpers ───────────────────────────────────────────────────
+  const availMin = selectedResource?.availabilityDate && selectedResource?.availabilityStart
+    ? `${selectedResource.availabilityDate}T${selectedResource.availabilityStart}`
+    : new Date().toISOString().slice(0, 16)
+
+  const availMax = selectedResource?.availabilityDate && selectedResource?.availabilityEnd
+    ? `${selectedResource.availabilityDate}T${selectedResource.availabilityEnd}`
+    : undefined
+
+  const outsideWindow = selectedResource?.availabilityDate &&
+    selectedResource?.availabilityStart &&
+    selectedResource?.availabilityEnd &&
+    startTime && endTime &&
+    (startTime < availMin || endTime > availMax)
+
+  // ─── Mutation ───────────────────────────────────────────────────────────────
   const createMutation = useMutation({
     mutationFn: (data) => bookingApi.create(data).then(r => r.data),
     onSuccess: () => {
@@ -278,52 +305,107 @@ function BookingFormDialog({ open, onClose, preselectedResourceId }) {
     if (!startTime || !endTime) return toast.error('Please set start and end times')
     if (new Date(endTime) <= new Date(startTime)) return toast.error('End time must be after start time')
     if (!purpose.trim()) return toast.error('Please enter a purpose')
+    
+    // For equipment, attendees field should be null (not required)
+    const attendeesValue = showAttendeesField && expectedAttendees ? Number(expectedAttendees) : null
 
     createMutation.mutate({
       resourceId: Number(resourceId),
-      startTime: startTime.slice(0, 19),
-      endTime:   endTime.slice(0, 19),
+      startTime:  startTime.slice(0, 19),
+      endTime:    endTime.slice(0, 19),
       purpose,
-      expectedAttendees: expectedAttendees ? Number(expectedAttendees) : null,
+      expectedAttendees: attendeesValue,
     })
+  }
+
+  function handleResourceChange(val) {
+    setResourceId(val)
+    setStartTime('')
+    setEndTime('')
+    setExpected('') // Reset attendees when resource changes
   }
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>New Booking Request</DialogTitle>
+          <DialogTitle>
+            New Booking Request
+            {preselectedResourceId && resourceNameFromUrl && !selectedResource && (
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                for {decodeURIComponent(resourceNameFromUrl)}
+              </span>
+            )}
+          </DialogTitle>
         </DialogHeader>
+
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+
+          {/* Resource selector */}
           <div className="space-y-1">
             <Label>Resource</Label>
-            <Select value={String(resourceId)} onValueChange={setResourceId}>
+            <Select value={String(resourceId)} onValueChange={handleResourceChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a resource…" />
               </SelectTrigger>
               <SelectContent>
                 {resources.map(r => (
                   <SelectItem key={r.id} value={String(r.id)}>
-                    {r.name} — {r.location}
+                    {r.name} — {r.location} ({r.type === 'EQUIPMENT' ? 'Equipment' : 
+                      r.type === 'LECTURE_HALL' ? 'Lecture Hall' :
+                      r.type === 'LAB' ? 'Lab' : 'Meeting Room'})
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {selectedResource?.availabilityStart && (
-              <p className="text-xs text-muted-foreground">
-                Available {fmtTime(selectedResource.availabilityStart)} – {fmtTime(selectedResource.availabilityEnd)}
-                {selectedResource.capacity ? ` · Capacity: ${selectedResource.capacity}` : ''}
-              </p>
-            )}
           </div>
 
+          {/* Availability window info box */}
+          {selectedResource && (
+            <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs space-y-0.5">
+              <p className="font-medium text-blue-800">Availability window</p>
+              {selectedResource.availabilityDate ? (
+                <>
+                  <p className="text-blue-700">
+                    Date: {new Date(selectedResource.availabilityDate + 'T00:00:00')
+                      .toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
+                  <p className="text-blue-700">
+                    Time: {fmtTime(selectedResource.availabilityStart)} – {fmtTime(selectedResource.availabilityEnd)}
+                  </p>
+                </>
+              ) : (
+                <p className="text-blue-600">No availability window set — contact admin</p>
+              )}
+              
+              {/* Show capacity only for venues, not equipment */}
+              {selectedResource.capacity && VENUE_TYPES.includes(selectedResource.type) && (
+                <p className="text-blue-700">Capacity: {selectedResource.capacity} people</p>
+              )}
+              
+              {/* Show equipment-specific info */}
+              {isEquipmentType && (
+                <p className="text-blue-700">📦 Equipment item — no attendee limit</p>
+              )}
+            </div>
+          )}
+
+          {/* Outside window warning */}
+          {outsideWindow && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              ⚠ Selected times are outside the availability window. Your booking will be rejected by the server.
+            </div>
+          )}
+
+          {/* Time inputs */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label>Start time</Label>
               <Input
                 type="datetime-local"
                 value={startTime}
-                min={new Date().toISOString().slice(0, 16)}
+                min={availMin}
+                max={availMax}
                 onChange={e => setStartTime(e.target.value)}
               />
             </div>
@@ -332,12 +414,14 @@ function BookingFormDialog({ open, onClose, preselectedResourceId }) {
               <Input
                 type="datetime-local"
                 value={endTime}
-                min={startTime || new Date().toISOString().slice(0, 16)}
+                min={startTime || availMin}
+                max={availMax}
                 onChange={e => setEndTime(e.target.value)}
               />
             </div>
           </div>
 
+          {/* Purpose */}
           <div className="space-y-1">
             <Label>Purpose</Label>
             <Textarea
@@ -348,20 +432,28 @@ function BookingFormDialog({ open, onClose, preselectedResourceId }) {
             />
           </div>
 
-          <div className="space-y-1">
-            <Label>Expected attendees <span className="text-muted-foreground">(optional)</span></Label>
-            <Input
-              type="number"
-              min={1}
-              max={selectedResource?.capacity ?? 9999}
-              placeholder="e.g. 30"
-              value={expectedAttendees}
-              onChange={e => setExpected(e.target.value)}
-            />
-            {selectedResource?.capacity && (
-              <p className="text-xs text-muted-foreground">Max capacity: {selectedResource.capacity}</p>
-            )}
-          </div>
+          {/* Expected Attendees - ONLY for venue types */}
+          {showAttendeesField && (
+            <div className="space-y-1">
+              <Label>
+                Expected attendees{' '}
+                <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <Input
+                type="number"
+                min={1}
+                max={selectedResource?.capacity ?? 9999}
+                placeholder="e.g. 30"
+                value={expectedAttendees}
+                onChange={e => setExpected(e.target.value)}
+              />
+              {selectedResource?.capacity && (
+                <p className="text-xs text-muted-foreground">
+                  Max capacity: {selectedResource.capacity} people
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
@@ -374,7 +466,6 @@ function BookingFormDialog({ open, onClose, preselectedResourceId }) {
     </Dialog>
   )
 }
-
 // ─── Admin: Review Dialog ────────────────────────────────────────────────────
 function ReviewDialog({ booking, onClose }) {
   const queryClient = useQueryClient()
