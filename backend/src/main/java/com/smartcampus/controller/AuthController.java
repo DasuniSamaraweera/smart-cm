@@ -37,6 +37,15 @@ public class AuthController {
         return ResponseEntity.ok(users);
     }
 
+    @GetMapping("/users/technicians")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserDTO>> getTechnicianUsers() {
+        List<UserDTO> users = userRepository.findByRole(UserRole.TECHNICIAN).stream()
+                .map(this::toDto)
+                .toList();
+        return ResponseEntity.ok(users);
+    }
+
     @GetMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
