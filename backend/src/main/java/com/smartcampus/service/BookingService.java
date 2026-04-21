@@ -21,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -65,20 +67,33 @@ public class BookingService {
 
         if (resource.getStatus() == ResourceStatus.OUT_OF_SERVICE) {
             throw new BadRequestException("Resource '" + resource.getName() + "' is currently out of service");
-        }
+        } 
 
-        // Check availability window if defined on the resource
-        if (resource.getAvailabilityStart() != null && resource.getAvailabilityEnd() != null) {
-            var reqStart = request.getStartTime().toLocalTime();
-            var reqEnd   = request.getEndTime().toLocalTime();
-            if (reqStart.isBefore(resource.getAvailabilityStart()) ||
-                reqEnd.isAfter(resource.getAvailabilityEnd())) {
+        // 4. Validate booking is within resource availability window
+        if (resource.getAvailabilityDate() != null
+                && resource.getAvailabilityStart() != null
+                && resource.getAvailabilityEnd() != null) {
+            LocalDate bookingDate = request.getStartTime().toLocalDate();
+            LocalDate availDate   = resource.getAvailabilityDate();
+
+            if (!bookingDate.equals(availDate)) {
                 throw new BadRequestException(
-                        "Booking is outside resource availability window ("
-                        + resource.getAvailabilityStart() + " – " + resource.getAvailabilityEnd() + ")"
-                );
+                    "This resource is only available on " + availDate + ". Please select a booking on that date.");
+            }
+
+            LocalTime bookingStart = request.getStartTime().toLocalTime();
+            LocalTime bookingEnd   = request.getEndTime().toLocalTime();
+
+            if (bookingStart.isBefore(resource.getAvailabilityStart()) ||
+                    bookingEnd.isAfter(resource.getAvailabilityEnd())) {
+                throw new BadRequestException(
+                    "Booking must be within the resource availability window: " +
+                    resource.getAvailabilityStart() + " – " + resource.getAvailabilityEnd());
             }
         }
+              
+
+        
 
         // Conflict check – uses the custom JPQL query in BookingRepository
         List<Booking> conflicts = bookingRepository.findConflictingBookings(
