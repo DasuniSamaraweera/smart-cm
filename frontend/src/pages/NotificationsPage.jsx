@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Bell, Check, Trash2, CheckCheck,
   CalendarCheck, CalendarX, Calendar,
-  Wrench, UserCheck, MessageSquare
+  Wrench, UserCheck, MessageSquare, Settings
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import { notificationApi } from '@/api/endpoints'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/context/AuthContext'
 
 const TYPE_CONFIG = {
   BOOKING_CREATED:       { icon: Calendar,      label: 'New Booking',       variant: 'default' },
@@ -68,7 +69,36 @@ function NotificationSkeleton() {
 export default function NotificationsPage() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const isTechnician = user?.role === 'TECHNICIAN'
   const [activeFilter, setActiveFilter] = useState('ALL')
+  const [showPreferences, setShowPreferences] = useState(false)
+  const [preferences, setPreferences] = useState(() => {
+    const stored = localStorage.getItem('notificationPreferences')
+    if (stored) return JSON.parse(stored)
+    // Default: all categories enabled
+    return {
+      BOOKING_CREATED: true,
+      BOOKING_APPROVED: true,
+      BOOKING_REJECTED: true,
+      BOOKING_CANCELLED: true,
+      TICKET_STATUS_CHANGED: true,
+      TICKET_ASSIGNED: true,
+      TICKET_COMMENT_ADDED: true,
+    }
+  })
+
+  // Save preferences to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('notificationPreferences', JSON.stringify(preferences))
+  }, [preferences])
+
+  const togglePreference = (type) => {
+    setPreferences(prev => ({
+      ...prev,
+      [type]: !prev[type]
+    }))
+  }
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ['notifications'],
@@ -129,13 +159,16 @@ export default function NotificationsPage() {
   }
 
   const filteredNotifications = notifications.filter(n => {
+    // Skip preferences filter for technicians
+    if (!isTechnician && !preferences[n.type]) return false
+    // Then apply filter tabs
     if (activeFilter === 'BOOKING') return BOOKING_TYPES.includes(n.type)
     if (activeFilter === 'TICKET')  return TICKET_TYPES.includes(n.type)
     return true
   })
 
   const unreadCount = unreadData?.count ?? 0
-  const hasUnread = filteredNotifications.some(n => !n.read) // ✅ CHANGED
+  const hasUnread = filteredNotifications.some(n => !n.read) 
 
   return (
     <div className="space-y-6">
@@ -184,7 +217,48 @@ export default function NotificationsPage() {
             </Badge>
           </Button>
         ))}
+        {!isTechnician && (
+          <Button
+            variant={showPreferences ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setShowPreferences(!showPreferences)}
+            className="ml-auto"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Preferences
+          </Button>
+        )}
       </div>
+
+      {/* Preferences Section */}
+      {!isTechnician && showPreferences && (
+        <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+          <CardContent className="pt-4">
+            <h3 className="font-semibold text-sm mb-4">Notification Preferences</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Object.entries(TYPE_CONFIG).map(([type, config]) => {
+                const Icon = config.icon
+                return (
+                  <div key={type} className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center gap-3">
+                      <Icon className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                      <label className="text-sm font-medium cursor-pointer">{config.label}</label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={preferences[type]}
+                        onChange={() => togglePreference(type)}
+                        className="w-4 h-4 accent-blue-500 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Separator />
 
