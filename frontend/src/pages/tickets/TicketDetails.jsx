@@ -14,7 +14,7 @@ import {
 import { authApi, ticketApi } from '@/api/endpoints';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Mail, Phone } from 'lucide-react';
 import CommentSection from '@/components/tickets/CommentSection';
 
 const statusVariant = {
@@ -396,13 +396,30 @@ export default function TicketDetails() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Contact Info</CardTitle>
+          <Card className="rounded-xl border-blue-200 bg-blue-50/80 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-bold text-blue-700">Contact Info</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <div><span className="text-muted-foreground">Email:</span> {ticket.contactEmail || 'N/A'}</div>
-              <div><span className="text-muted-foreground">Phone:</span> {ticket.contactPhone || 'N/A'}</div>
+            <CardContent className="space-y-3">
+              <div className="flex items-start gap-3 rounded-xl bg-white/70 p-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                  <Mail className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-slate-500">Email Address</p>
+                  <p className="break-all text-sm font-bold text-blue-900">{ticket.contactEmail || 'N/A'}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-xl bg-white/70 p-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                  <Phone className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-slate-500">Phone Number</p>
+                  <p className="text-sm font-bold text-blue-900">{ticket.contactPhone || 'N/A'}</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
