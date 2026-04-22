@@ -185,6 +185,75 @@ export default function TicketDetails() {
   const canResolve = isAssignedTechnician && ticket.status === 'IN_PROGRESS';
   const canAssign = isAdmin && ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED';
 
+  const formatActivityTimestamp = (timestamp) => {
+    if (!timestamp) {
+      return 'Time unavailable';
+    }
+
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) {
+      return 'Time unavailable';
+    }
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const dayDiff = Math.round((startOfToday - startOfDate) / (1000 * 60 * 60 * 24));
+    const timePart = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+    if (dayDiff === 0) {
+      return `Today, ${timePart}`;
+    }
+
+    if (dayDiff === 1) {
+      return `Yesterday, ${timePart}`;
+    }
+
+    const datePart = date.toLocaleDateString([], {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+    return `${datePart}, ${timePart}`;
+  };
+
+  const currentStatusLabel = ticket.status ? ticket.status.replace(/_/g, ' ') : '';
+  const statusEventText = {
+    RESOLVED: 'Ticket resolved',
+    CLOSED: 'Ticket closed',
+    REJECTED: 'Ticket rejected',
+  }[ticket.status] || `Status updated to ${currentStatusLabel}`;
+
+  const activityEvents = [
+    {
+      key: `status-${ticket.status}-${ticket.updatedAt || ''}`,
+      text: statusEventText,
+      timestamp: ticket.updatedAt || ticket.createdAt,
+    },
+    ticket.assignedTo
+      ? {
+          key: `assigned-${ticket.assignedTo.id}-${ticket.updatedAt || ''}`,
+          text: `Ticket assigned to ${ticket.assignedTo.name}`,
+          timestamp: ticket.updatedAt || ticket.createdAt,
+        }
+      : null,
+    {
+      key: `created-${ticket.id}-${ticket.createdAt || ''}`,
+      text: `Ticket created by ${ticket.reporter?.name || 'Reporter'}`,
+      timestamp: ticket.createdAt,
+    },
+  ]
+    .filter(Boolean)
+    .map((event) => {
+      const eventDate = new Date(event.timestamp);
+      return {
+        ...event,
+        eventDate,
+      };
+    })
+    .filter((event) => !Number.isNaN(event.eventDate.getTime()))
+    .sort((a, b) => b.eventDate.getTime() - a.eventDate.getTime());
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-4">
@@ -332,67 +401,90 @@ export default function TicketDetails() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Workflow Actions</CardTitle>
+          <Card className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold text-slate-800">Activity Log</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {canResolve && (
-                <>
-                  <Textarea
-                    placeholder="Add optional resolution notes"
-                    value={resolutionNotesInput}
-                    onChange={(e) => setResolutionNotesInput(e.target.value)}
-                  />
+            <CardContent className="space-y-4">
+              {activityEvents.length > 0 ? (
+                <div className="relative border-l-2 border-slate-200 pl-4">
+                  {activityEvents.map((event, index) => (
+                    <div
+                      key={event.key}
+                      className={`relative ${index === activityEvents.length - 1 ? 'pb-0' : 'pb-5'}`}
+                    >
+                      <span
+                        className={`absolute -left-[22px] top-1 h-3 w-3 rounded-full ring-4 ring-white ${
+                          index === 0 ? 'bg-emerald-500' : 'bg-slate-300'
+                        }`}
+                      />
+                      <p className="text-sm font-medium text-slate-700">{event.text}</p>
+                      <p className="mt-1 text-xs text-slate-500">{formatActivityTimestamp(event.timestamp)}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">No activity available</p>
+              )}
+
+              <div className="space-y-3 border-t border-slate-200 pt-3">
+                {canResolve && (
+                  <>
+                    <Textarea
+                      placeholder="Add optional resolution notes"
+                      value={resolutionNotesInput}
+                      onChange={(e) => setResolutionNotesInput(e.target.value)}
+                    />
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={() => handleStatusUpdate('RESOLVED')}
+                      disabled={statusUpdating}
+                    >
+                      {statusUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Mark as Resolved
+                    </Button>
+                  </>
+                )}
+
+                {canClose && (
                   <Button
                     size="sm"
                     className="w-full"
-                    onClick={() => handleStatusUpdate('RESOLVED')}
+                    onClick={() => handleStatusUpdate('CLOSED')}
                     disabled={statusUpdating}
                   >
                     {statusUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Mark as Resolved
+                    Close Ticket
                   </Button>
-                </>
-              )}
+                )}
 
-              {canClose && (
-                <Button
-                  size="sm"
-                  className="w-full"
-                  onClick={() => handleStatusUpdate('CLOSED')}
-                  disabled={statusUpdating}
-                >
-                  {statusUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Close Ticket
-                </Button>
-              )}
+                {canReject && (
+                  <>
+                    <Textarea
+                      placeholder="Rejection reason (required)"
+                      value={rejectionReasonInput}
+                      onChange={(e) => setRejectionReasonInput(e.target.value)}
+                    />
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="w-full"
+                      onClick={() => handleStatusUpdate('REJECTED')}
+                      disabled={statusUpdating}
+                    >
+                      {statusUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Reject Ticket
+                    </Button>
+                  </>
+                )}
 
-              {canReject && (
-                <>
-                  <Textarea
-                    placeholder="Rejection reason (required)"
-                    value={rejectionReasonInput}
-                    onChange={(e) => setRejectionReasonInput(e.target.value)}
-                  />
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="w-full"
-                    onClick={() => handleStatusUpdate('REJECTED')}
-                    disabled={statusUpdating}
-                  >
-                    {statusUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Reject Ticket
-                  </Button>
-                </>
-              )}
-
-              {!canResolve && !canClose && !canReject && (
-                <p className="text-xs text-muted-foreground">
-                  No status actions are available for your role on this ticket.
-                </p>
-              )}
+                {!canResolve && !canClose && !canReject && (
+                  <p className="text-xs text-muted-foreground">
+                    No status actions are available for your role on this ticket.
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
 
