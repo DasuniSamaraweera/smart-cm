@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +40,14 @@ export default function TicketDetails() {
   const [attachmentUrls, setAttachmentUrls] = useState({});
   const [attachmentsLoading, setAttachmentsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const attachmentUrlsRef = useRef({});
+
+  const applyTicketState = (ticketData) => {
+    setTicket(ticketData);
+    setSelectedAssignee(ticketData.assignedTo?.id ? String(ticketData.assignedTo.id) : '');
+    setResolutionNotesInput(ticketData.resolutionNotes || '');
+    setRejectionReasonInput(ticketData.rejectionReason || '');
+  };
 
   useEffect(() => {
     fetchTicket();
@@ -53,10 +61,14 @@ export default function TicketDetails() {
 
   useEffect(() => {
     let isMounted = true;
-    const objectUrls = [];
+    const createdUrls = [];
 
     const loadAttachments = async () => {
-      if (!ticket?.id || !Array.isArray(ticket.attachments) || ticket.attachments.length === 0) {
+      const attachments = Array.isArray(ticket?.attachments) ? ticket.attachments : [];
+
+      if (!ticket?.id || attachments.length === 0) {
+        Object.values(attachmentUrlsRef.current).forEach((url) => URL.revokeObjectURL(url));
+        attachmentUrlsRef.current = {};
         setAttachmentUrls({});
         setAttachmentsLoading(false);
         return;
@@ -65,7 +77,12 @@ export default function TicketDetails() {
       try {
         setAttachmentsLoading(true);
         const entries = await Promise.all(
-          ticket.attachments.map(async (attachment) => {
+          attachments.map(async (attachment) => {
+            const cachedUrl = attachmentUrlsRef.current[attachment.id];
+            if (cachedUrl) {
+              return [attachment.id, cachedUrl];
+            }
+
             const res = await ticketApi.getAttachment(ticket.id, attachment.id);
             const blob =
               res.data instanceof Blob
@@ -74,17 +91,28 @@ export default function TicketDetails() {
                     type: attachment.fileType || 'application/octet-stream',
                   });
             const url = URL.createObjectURL(blob);
-            objectUrls.push(url);
+            createdUrls.push(url);
             return [attachment.id, url];
           })
         );
 
         if (isMounted) {
-          setAttachmentUrls(Object.fromEntries(entries));
+          const nextUrls = Object.fromEntries(entries);
+          Object.entries(attachmentUrlsRef.current).forEach(([attachmentId, url]) => {
+            if (!nextUrls[attachmentId]) {
+              URL.revokeObjectURL(url);
+            }
+          });
+          attachmentUrlsRef.current = nextUrls;
+          setAttachmentUrls(nextUrls);
+        } else {
+          createdUrls.forEach((url) => URL.revokeObjectURL(url));
         }
       } catch (err) {
+        createdUrls.forEach((url) => URL.revokeObjectURL(url));
         console.error('Failed to load attachments', err);
         if (isMounted) {
+          attachmentUrlsRef.current = {};
           setAttachmentUrls({});
           toast.error(err.response?.data?.message || 'Unable to load ticket attachments');
         }
@@ -99,17 +127,19 @@ export default function TicketDetails() {
 
     return () => {
       isMounted = false;
-      objectUrls.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [ticket?.id, ticket?.updatedAt, ticket?.attachments]);
+  }, [ticket?.id, ticket?.attachments]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(attachmentUrlsRef.current).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   const fetchTicket = async () => {
     try {
       const res = await ticketApi.getById(id);
-      setTicket(res.data);
-      setSelectedAssignee(res.data.assignedTo?.id ? String(res.data.assignedTo.id) : '');
-      setResolutionNotesInput(res.data.resolutionNotes || '');
-      setRejectionReasonInput(res.data.rejectionReason || '');
+      applyTicketState(res.data);
     } catch (err) {
       console.error("Failed to load ticket", err);
     } finally {
@@ -137,9 +167,9 @@ export default function TicketDetails() {
 
     try {
       setAssigning(true);
-      await ticketApi.assign(ticket.id, { assigneeId: Number(selectedAssignee) });
+      const res = await ticketApi.assign(ticket.id, { assigneeId: Number(selectedAssignee) });
+      applyTicketState(res.data);
       toast.success('Ticket assigned successfully');
-      await fetchTicket();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to assign ticket');
     } finally {
@@ -165,9 +195,9 @@ export default function TicketDetails() {
 
     try {
       setStatusUpdating(true);
-      await ticketApi.updateStatus(ticket.id, payload);
+      const res = await ticketApi.updateStatus(ticket.id, payload);
+      applyTicketState(res.data);
       toast.success(`Ticket marked as ${nextStatus.replace('_', ' ')}`);
-      await fetchTicket();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update status');
     } finally {
