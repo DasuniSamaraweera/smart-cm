@@ -222,10 +222,10 @@ export default function CreateResourcePage() {
 
   if (!isAdmin) {
     return (
-      <Card className="rounded-2xl border-slate-200 shadow-sm">
+      <Card className="rounded-2xl border-slate-200 dark:border-slate-700 shadow-sm">
         <CardContent className="p-6">
-          <h1 className="text-xl font-semibold text-slate-900">Access Restricted</h1>
-          <p className="mt-2 text-sm text-slate-600">Only admins can add new resources.</p>
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Access Restricted</h1>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Only admins can add new resources.</p>
           <Button type="button" className="mt-4 rounded-xl" onClick={() => navigate('/resources')}>
             Back To Resources
           </Button>
@@ -239,22 +239,22 @@ export default function CreateResourcePage() {
       <div className="flex items-center justify-between rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-cyan-500/10 p-5 shadow-sm">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-500">Resource Catalogue</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Add New Resource</h1>
-          <p className="mt-1 text-sm text-slate-600">Create a resource with type, subcategory, availability, and stock details.</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Add New Resource</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Create a resource with type, subcategory, availability, and stock details.</p>
         </div>
-        <Button type="button" variant="outline" className="rounded-xl border-slate-300" onClick={() => navigate('/resources')}>
+        <Button type="button" variant="outline" className="rounded-xl border-slate-300 dark:border-slate-600" onClick={() => navigate('/resources')}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
       </div>
 
-      <Card className="rounded-2xl border-indigo-100 bg-white shadow-sm">
+      <Card className="rounded-2xl border-indigo-100 bg-white dark:bg-gray-900 shadow-sm">
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <Label className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Resource Type</Label>
+              <Label className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Resource Type</Label>
               <Select value={form.resourceType} onValueChange={handleResourceTypeChange}>
-                <SelectTrigger className="mt-1.5 rounded-xl border-slate-200 bg-slate-50">
+                <SelectTrigger className="mt-1.5 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -266,9 +266,9 @@ export default function CreateResourcePage() {
             </div>
 
             <div>
-              <Label className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Resource Subcategory</Label>
+              <Label className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Resource Subcategory</Label>
               <Select value={form.resourceSubcategory} onValueChange={(v) => updateField('resourceSubcategory', v)}>
-                <SelectTrigger className="mt-1.5 rounded-xl border-slate-200 bg-slate-50">
+                <SelectTrigger className="mt-1.5 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -280,65 +280,65 @@ export default function CreateResourcePage() {
             </div>
 
             <div className="md:col-span-2">
-              <Label htmlFor="resource" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Resource</Label>
+              <Label htmlFor="resource" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Resource</Label>
               <Input
                 id="resource"
                 value={form.resource}
                 onChange={(e) => updateField('resource', e.target.value)}
                 placeholder="Enter resource name"
                 required
-                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
+                className="mt-1.5 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             </div>
 
             <div>
-              <Label htmlFor="availableDate" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Available Date</Label>
+              <Label htmlFor="availableDate" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Available Date</Label>
               <Input
                 id="availableDate"
                 type="date"
                 value={form.availableDate}
                 onChange={(e) => updateField('availableDate', e.target.value)}
                 required
-                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
+                className="mt-1.5 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             </div>
 
             <div>
-              <Label htmlFor="availableFromTime" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Available From</Label>
+              <Label htmlFor="availableFromTime" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Available From</Label>
               <Input
                 id="availableFromTime"
                 type="time"
                 value={form.availableFromTime}
                 onChange={(e) => updateField('availableFromTime', e.target.value)}
-                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
+                className="mt-1.5 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             </div>
 
             <div>
-              <Label htmlFor="availableToTime" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Available To</Label>
+              <Label htmlFor="availableToTime" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Available To</Label>
               <Input
                 id="availableToTime"
                 type="time"
                 value={form.availableToTime}
                 onChange={(e) => updateField('availableToTime', e.target.value)}
-                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
+                className="mt-1.5 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             </div>
 
             <div>
-              <Label htmlFor="location" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Location</Label>
+              <Label htmlFor="location" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Location</Label>
               <Input
                 id="location"
                 value={form.location}
                 onChange={(e) => updateField('location', e.target.value)}
                 placeholder="e.g. Block A, Floor 2"
                 required
-                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
+                className="mt-1.5 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             </div>
 
             <div>
-              <Label htmlFor="capacityOrAmount" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">
+              <Label htmlFor="capacityOrAmount" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                 {isEquipmentLike ? 'Amount' : 'Capacity'}
               </Label>
               <Input
@@ -348,14 +348,14 @@ export default function CreateResourcePage() {
                 value={form.capacityOrAmount}
                 onChange={(e) => updateField('capacityOrAmount', e.target.value)}
                 placeholder={isEquipmentLike ? 'e.g. 12' : 'e.g. 80'}
-                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
+                className="mt-1.5 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             </div>
 
             <div>
-              <Label className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Status</Label>
+              <Label className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Status</Label>
               <Select value={form.status} onValueChange={(v) => updateField('status', v)}>
-                <SelectTrigger className="mt-1.5 rounded-xl border-slate-200 bg-slate-50">
+                <SelectTrigger className="mt-1.5 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -366,30 +366,30 @@ export default function CreateResourcePage() {
             </div>
 
             <div>
-              <Label htmlFor="contactPerson" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Contact Person</Label>
+              <Label htmlFor="contactPerson" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Contact Person</Label>
               <Input
                 id="contactPerson"
                 value={form.contactPerson}
                 onChange={(e) => updateField('contactPerson', e.target.value)}
                 placeholder="e.g. Facilities Manager"
-                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
+                className="mt-1.5 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             </div>
 
             <div>
-              <Label htmlFor="contactNumber" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Contact Number</Label>
+              <Label htmlFor="contactNumber" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Contact Number</Label>
               <Input
                 id="contactNumber"
                 type="tel"
                 value={form.contactNumber}
                 onChange={(e) => updateField('contactNumber', e.target.value)}
                 placeholder="e.g. +94 77 123 4567"
-                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
+                className="mt-1.5 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             </div>
 
             <div className="md:col-span-2 flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" className="rounded-xl border-slate-300" onClick={() => navigate('/resources')}>
+              <Button type="button" variant="outline" className="rounded-xl border-slate-300 dark:border-slate-600" onClick={() => navigate('/resources')}>
                 Cancel
               </Button>
               <Button type="submit" className="rounded-xl bg-indigo-600 text-white hover:bg-indigo-700" disabled={mutation.isPending}>

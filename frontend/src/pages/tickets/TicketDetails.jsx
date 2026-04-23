@@ -431,13 +431,13 @@ export default function TicketDetails() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-xl border border-slate-200 bg-white shadow-sm">
+          <Card className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold text-slate-800">Activity Log</CardTitle>
+              <CardTitle className="text-sm font-semibold text-slate-800 dark:text-slate-200">Activity Log</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {activityEvents.length > 0 ? (
-                <div className="relative border-l-2 border-slate-200 pl-4">
+                <div className="relative border-l-2 border-slate-200 dark:border-slate-700 pl-4">
                   {activityEvents.map((event, index) => (
                     <div
                       key={event.key}
@@ -448,8 +448,8 @@ export default function TicketDetails() {
                           index === 0 ? 'bg-emerald-500' : 'bg-slate-300'
                         }`}
                       />
-                      <p className="text-sm font-medium text-slate-700">{event.text}</p>
-                      <p className="mt-1 text-xs text-slate-500">{formatActivityTimestamp(event.timestamp)}</p>
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{event.text}</p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{formatActivityTimestamp(event.timestamp)}</p>
                     </div>
                   ))}
                 </div>
@@ -457,7 +457,7 @@ export default function TicketDetails() {
                 <p className="text-xs text-muted-foreground">No activity available</p>
               )}
 
-              <div className="space-y-3 border-t border-slate-200 pt-3">
+              <div className="space-y-3 border-t border-slate-200 dark:border-slate-700 pt-3">
                 {canResolve && (
                   <>
                     <Textarea
@@ -523,22 +523,22 @@ export default function TicketDetails() {
               <CardTitle className="text-sm font-bold text-blue-700">Contact Info</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-start gap-3 rounded-xl bg-white/70 p-3">
+              <div className="flex items-start gap-3 rounded-xl bg-white dark:bg-gray-900/70 p-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
                   <Mail className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-slate-500">Email Address</p>
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Email Address</p>
                   <p className="break-all text-sm font-bold text-blue-900">{ticket.contactEmail || 'N/A'}</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 rounded-xl bg-white/70 p-3">
+              <div className="flex items-start gap-3 rounded-xl bg-white dark:bg-gray-900/70 p-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
                   <Phone className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-slate-500">Phone Number</p>
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Phone Number</p>
                   <p className="text-sm font-bold text-blue-900">{ticket.contactPhone || 'N/A'}</p>
                 </div>
               </div>

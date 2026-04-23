@@ -80,21 +80,21 @@ export default function TicketPieChartCard({
   }
 
   return (
-    <Card className="group rounded-2xl border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
+    <Card className="group rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
       <CardHeader className="pb-4">
         <div className="flex items-center gap-2.5">
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 ring-1 ring-indigo-200/70">
             {Icon ? <Icon className="h-4 w-4" /> : <PieChart className="h-4 w-4" />}
           </span>
-          <CardTitle className="text-lg font-bold text-slate-900">{title}</CardTitle>
+          <CardTitle className="text-lg font-bold text-slate-900 dark:text-slate-100">{title}</CardTitle>
         </div>
-        <p className="mt-1 text-sm font-medium text-slate-500">{subtitle}</p>
-        <div className="mt-3 h-px w-full bg-slate-200" />
+        <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">{subtitle}</p>
+        <div className="mt-3 h-px w-full bg-slate-200 dark:bg-slate-700" />
       </CardHeader>
 
       <CardContent>
         <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 p-4">
             <div ref={chartRef} className="relative mx-auto h-[220px] w-[220px]">
               {hasData ? (
                 <svg
@@ -155,23 +155,23 @@ export default function TicketPieChartCard({
                     })}
                 </svg>
               ) : (
-                <div className="flex h-full w-full items-center justify-center rounded-full border border-dashed border-slate-300 bg-white">
-                  <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">No Data</p>
+                <div className="flex h-full w-full items-center justify-center rounded-full border border-dashed border-slate-300 dark:border-slate-600 bg-white dark:bg-gray-900">
+                  <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">No Data</p>
                 </div>
               )}
 
-              <div className="absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">{totalLabel}</p>
-                <p className="text-xl font-bold text-slate-900">{total}</p>
+              <div className="absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">{totalLabel}</p>
+                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{total}</p>
               </div>
 
               {tooltip && (
                 <div
-                  className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full rounded-lg border border-slate-200 bg-white/95 px-2.5 py-1.5 text-xs shadow-md"
+                  className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900/95 px-2.5 py-1.5 text-xs shadow-md"
                   style={{ left: tooltip.x, top: tooltip.y }}
                 >
-                  <p className="font-semibold text-slate-900">{tooltip.label}</p>
-                  <p className="text-slate-600">{tooltip.value} tickets • {tooltip.percent}%</p>
+                  <p className="font-semibold text-slate-900 dark:text-slate-100">{tooltip.label}</p>
+                  <p className="text-slate-600 dark:text-slate-400">{tooltip.value} tickets • {tooltip.percent}%</p>
                 </div>
               )}
             </div>
@@ -185,7 +185,7 @@ export default function TicketPieChartCard({
               return (
                 <div
                   key={segment.key}
-                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 transition-all duration-200 hover:border-slate-300 hover:bg-white"
+                  className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-white dark:hover:bg-slate-800"
                   onMouseEnter={() => setActiveKey(segment.key)}
                   onMouseLeave={() => setActiveKey(null)}
                   style={{ opacity: isMuted ? 0.45 : 1 }}
@@ -196,13 +196,13 @@ export default function TicketPieChartCard({
                         className="h-2.5 w-2.5 rounded-full ring-2 ring-white"
                         style={{ backgroundColor: segment.color }}
                       />
-                      <p className="truncate text-sm font-semibold text-slate-900">{segment.label}</p>
+                      <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{segment.label}</p>
                     </div>
-                    <p className="text-xs font-medium text-slate-600">{segment.value} tickets</p>
+                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400">{segment.value} tickets</p>
                   </div>
 
                   <div className="mt-2 flex items-center gap-3">
-                    <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-200/90">
+                    <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700/90">
                       <div
                         className="h-full rounded-full transition-all duration-700 ease-out"
                         style={{
@@ -213,7 +213,7 @@ export default function TicketPieChartCard({
                         }}
                       />
                     </div>
-                    <span className="w-10 text-right text-xs font-bold text-slate-700">{segment.percent}%</span>
+                    <span className="w-10 text-right text-xs font-bold text-slate-700 dark:text-slate-300">{segment.percent}%</span>
                   </div>
                 </div>
               )

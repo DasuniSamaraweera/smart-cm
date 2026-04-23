@@ -258,8 +258,8 @@ export default function ResourcesPage() {
       <div className="flex items-center justify-between rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-cyan-500/10 p-5 shadow-sm">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-500">Resource Catalogue</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Facilities & Resources</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Facilities & Resources</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             Manage campus resources, halls, labs, rooms, and equipment.
           </p>
         </div>
@@ -272,9 +272,9 @@ export default function ResourcesPage() {
       </div>
 
       {/* Filters */}
-      <Card className="rounded-2xl border-indigo-100 bg-white/90 shadow-sm">
+      <Card className="rounded-2xl border-indigo-100 bg-white dark:bg-gray-900/90 shadow-sm">
         <CardContent className="p-4">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Search And Ranking</p>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Search And Ranking</p>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -282,11 +282,11 @@ export default function ResourcesPage() {
                 placeholder="Search resources..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 rounded-xl border-slate-200 bg-slate-50"
+                className="pl-9 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             </div>
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v === 'ALL' ? '' : v)}>
-              <SelectTrigger className="w-full rounded-xl border-slate-200 bg-slate-50 sm:w-[180px]">
+              <SelectTrigger className="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 sm:w-[180px]">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -301,13 +301,13 @@ export default function ResourcesPage() {
               value={minCapacity}
               onChange={(e) => setMinCapacity(e.target.value)}
               placeholder="Min capacity"
-              className="w-full rounded-xl border-slate-200 bg-slate-50 sm:w-[140px]"
+              className="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 sm:w-[140px]"
             />
           </div>
 
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Select value={sortMode} onValueChange={setSortMode}>
-              <SelectTrigger className="rounded-xl border-slate-200 bg-slate-50">
+              <SelectTrigger className="rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                 <SelectValue placeholder="Sort mode" />
               </SelectTrigger>
               <SelectContent>
@@ -320,7 +320,7 @@ export default function ResourcesPage() {
               value={preferredLocation}
               onChange={(e) => setPreferredLocation(e.target.value)}
               placeholder="Preferred location"
-              className="rounded-xl border-slate-200 bg-slate-50"
+              className="rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
             />
 
             <Input
@@ -329,52 +329,52 @@ export default function ResourcesPage() {
               value={desiredCapacity}
               onChange={(e) => setDesiredCapacity(e.target.value)}
               placeholder="Desired capacity"
-              className="rounded-xl border-slate-200 bg-slate-50"
+              className="rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
             />
 
             <div className="space-y-1.5">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">Desired Date</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-600 dark:text-slate-400">Desired Date</p>
               <Input
                 type="date"
                 value={desiredDate}
                 onChange={(e) => setDesiredDate(e.target.value)}
-                className="rounded-xl border-slate-200 bg-slate-50"
+                className="rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             </div>
 
             <div className="space-y-1.5">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">Start Time</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-600 dark:text-slate-400">Start Time</p>
               <Input
                 type="time"
                 value={desiredStartTime}
                 onChange={(e) => setDesiredStartTime(e.target.value)}
-                className="rounded-xl border-slate-200 bg-slate-50"
+                className="rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             </div>
 
             <div className="space-y-1.5">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">End Time</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-600 dark:text-slate-400">End Time</p>
               <Input
                 type="time"
                 value={desiredEndTime}
                 onChange={(e) => setDesiredEndTime(e.target.value)}
-                className="rounded-xl border-slate-200 bg-slate-50"
+                className="rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             </div>
           </div>
 
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">Selected Date</p>
-              <p className="mt-1 text-sm font-medium text-slate-800">{formatDateLabel(desiredDate)}</p>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Selected Date</p>
+              <p className="mt-1 text-sm font-medium text-slate-800 dark:text-slate-200">{formatDateLabel(desiredDate)}</p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">From</p>
-              <p className="mt-1 text-sm font-medium text-slate-800">{formatTimeLabel(desiredStartTime)}</p>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">From</p>
+              <p className="mt-1 text-sm font-medium text-slate-800 dark:text-slate-200">{formatTimeLabel(desiredStartTime)}</p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">To</p>
-              <p className="mt-1 text-sm font-medium text-slate-800">{formatTimeLabel(desiredEndTime)}</p>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">To</p>
+              <p className="mt-1 text-sm font-medium text-slate-800 dark:text-slate-200">{formatTimeLabel(desiredEndTime)}</p>
             </div>
           </div>
 
@@ -395,18 +395,18 @@ export default function ResourcesPage() {
             <Card
               key={type}
               className={`cursor-pointer rounded-2xl border transition-all hover:-translate-y-0.5 hover:shadow-md ${
-                isSelected ? 'border-indigo-400 ring-2 ring-indigo-300/60 shadow-sm' : 'border-slate-200'
+                isSelected ? 'border-indigo-400 ring-2 ring-indigo-300/60 shadow-sm' : 'border-slate-200 dark:border-slate-700'
               }`}
               onClick={() => setSelectedCategory(type)}
             >
               <CardContent className={`rounded-2xl bg-gradient-to-br p-5 ${typeCardStyles[type] || 'from-slate-100 to-white'}`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">{typeLabels[type]}</p>
-                    <p className="mt-1 text-2xl font-semibold text-slate-800">{resourceCounts[type] || 0}</p>
+                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">{typeLabels[type]}</p>
+                    <p className="mt-1 text-2xl font-semibold text-slate-800 dark:text-slate-200">{resourceCounts[type] || 0}</p>
                   </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/70 shadow-sm">
-                    <Icon className="h-5 w-5 text-slate-700" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white dark:bg-gray-900/70 shadow-sm">
+                    <Icon className="h-5 w-5 text-slate-700 dark:text-slate-300" />
                   </div>
                 </div>
               </CardContent>
@@ -420,7 +420,7 @@ export default function ResourcesPage() {
           <p className="text-sm text-muted-foreground">
             Showing {typeLabels[selectedCategory]} resources only
           </p>
-          <Button type="button" variant="outline" size="sm" className="rounded-xl border-slate-300" onClick={() => setSelectedCategory('')}>
+          <Button type="button" variant="outline" size="sm" className="rounded-xl border-slate-300 dark:border-slate-600" onClick={() => setSelectedCategory('')}>
             Show all resources
           </Button>
         </div>
@@ -438,7 +438,7 @@ export default function ResourcesPage() {
           ))}
         </div>
       ) : displayedResources.length === 0 ? (
-        <Card className="rounded-2xl border-slate-200">
+        <Card className="rounded-2xl border-slate-200 dark:border-slate-700">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <Building2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-medium">No resources found</h3>
@@ -459,10 +459,10 @@ export default function ResourcesPage() {
             return (
               <Card
                 key={resource.id}
-                className={`group rounded-2xl bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
+                className={`group rounded-2xl bg-white dark:bg-gray-900 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
                   isBestMatch
                     ? 'border-2 border-emerald-400 ring-2 ring-emerald-200/70'
-                    : 'border-slate-200'
+                    : 'border-slate-200 dark:border-slate-700'
                 }`}
               >
                 <CardContent className="p-6">
@@ -472,8 +472,8 @@ export default function ResourcesPage() {
                         <Icon className="h-5 w-5 text-indigo-600" />
                       </div>
                       <div>
-                        <h3 className="font-semibold leading-tight text-slate-900">{resource.name}</h3>
-                        <p className="mt-0.5 text-xs uppercase tracking-[0.1em] text-slate-500">
+                        <h3 className="font-semibold leading-tight text-slate-900 dark:text-slate-100">{resource.name}</h3>
+                        <p className="mt-0.5 text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
                           {typeLabels[resource.type] || resource.type}
                         </p>
                         {sortMode === 'SMART_FIT' && (
@@ -519,12 +519,12 @@ export default function ResourcesPage() {
                   </div>
 
                   {resource.description && (
-                    <p className="mt-3 line-clamp-2 text-sm text-slate-600">
+                    <p className="mt-3 line-clamp-2 text-sm text-slate-600 dark:text-slate-400">
                       {resource.description}
                     </p>
                   )}
 
-                  <div className="mt-4 flex items-center gap-4 text-sm text-slate-600">
+                  <div className="mt-4 flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
                     <div className="flex items-center gap-1">
                       <MapPin className="h-3.5 w-3.5" />
                       {resource.location}
@@ -537,15 +537,15 @@ export default function ResourcesPage() {
                     )}
                   </div>
 
-                  <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">Availability</p>
-                    <div className="mt-2 space-y-1.5 text-sm text-slate-700">
+                  <div className="mt-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Availability</p>
+                    <div className="mt-2 space-y-1.5 text-sm text-slate-700 dark:text-slate-300">
                       <div className="flex items-center gap-2">
-                        <CalendarDays className="h-3.5 w-3.5 text-slate-500" />
+                        <CalendarDays className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
                         <span>{formatDateLabel(resource.availabilityDate)}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Clock3 className="h-3.5 w-3.5 text-slate-500" />
+                        <Clock3 className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
                         <span>
                           {resource.availabilityStart && resource.availabilityEnd
                             ? `${formatTimeLabel(resource.availabilityStart)} - ${formatTimeLabel(resource.availabilityEnd)}`
@@ -555,18 +555,18 @@ export default function ResourcesPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3">
+                  <div className="mt-4 flex items-center justify-between border-t border-slate-200 dark:border-slate-700 pt-3">
                     <Badge variant={resource.status === 'ACTIVE' ? 'success' : 'destructive'}>
                       {resource.status === 'ACTIVE' ? 'Active' : 'Out of Service'}
                     </Badge>
-                    <span className="text-xs font-medium text-slate-500">{typeLabels[resource.type] || resource.type}</span>
+                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{typeLabels[resource.type] || resource.type}</span>
                   </div>
 
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="mt-3 w-full gap-2 rounded-xl border-slate-300"
+                    className="mt-3 w-full gap-2 rounded-xl border-slate-300 dark:border-slate-600"
                     onClick={() => handleBookNow(resource)}
                     disabled={resource.status !== 'ACTIVE'}
                   >

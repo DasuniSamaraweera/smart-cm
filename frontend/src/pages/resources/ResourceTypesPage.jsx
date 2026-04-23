@@ -13,8 +13,8 @@ export default function ResourceTypesPage() {
       <div className="flex items-center justify-between rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-cyan-500/10 p-5 shadow-sm">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-500">Resource Catalogue</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Choose Resource Type</h1>
-          <p className="mt-1 text-sm text-slate-600">Select one category to continue.</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Choose Resource Type</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Select one category to continue.</p>
         </div>
         {isAdmin && (
           <Button
@@ -31,13 +31,13 @@ export default function ResourceTypesPage() {
         {resourceTypeCards.map((card) => {
           const Icon = card.icon
           return (
-            <Card key={card.key} className="rounded-2xl border-slate-200 shadow-sm">
+            <Card key={card.key} className="rounded-2xl border-slate-200 dark:border-slate-700 shadow-sm">
               <CardContent className={`rounded-2xl bg-gradient-to-br p-6 ${card.tone}`}>
-                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-white/80 shadow-sm">
-                  <Icon className="h-5 w-5 text-slate-700" />
+                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-white dark:bg-gray-900/80 shadow-sm">
+                  <Icon className="h-5 w-5 text-slate-700 dark:text-slate-300" />
                 </div>
-                <h2 className="text-lg font-semibold text-slate-900">{card.title}</h2>
-                <p className="mt-1 text-sm text-slate-600">{card.description}</p>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{card.title}</h2>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{card.description}</p>
                 <Button
                   type="button"
                   className="mt-4 w-full rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"

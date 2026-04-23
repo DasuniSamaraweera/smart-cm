@@ -212,17 +212,17 @@ export default function TicketAnalysisPage() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-500">
               Administration
             </p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">Ticket Analysis</h1>
-            <p className="mt-1 text-sm font-medium text-slate-600">
+            <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Ticket Analysis</h1>
+            <p className="mt-1 text-sm font-medium text-slate-600 dark:text-slate-400">
               Monitor ticket distributions with a clean, interactive analytics view.
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-[minmax(220px,1fr)_auto]">
             <div>
-              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Date Range</p>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Date Range</p>
               <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger className="rounded-xl border-slate-200 bg-white shadow-sm">
+                <SelectTrigger className="rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-800 shadow-sm">
                   <SelectValue placeholder="Select range" />
                 </SelectTrigger>
                 <SelectContent>
@@ -235,7 +235,7 @@ export default function TicketAnalysisPage() {
 
             <Button
               variant="outline"
-              className="h-10 rounded-xl border-slate-200 bg-white shadow-sm hover:bg-slate-50"
+              className="h-10 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-800 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700"
               onClick={() => refetch()}
               disabled={isFetching}
             >
@@ -250,7 +250,7 @@ export default function TicketAnalysisPage() {
         {summaryCards.map((card) => (
           <Card
             key={card.key}
-            className="group relative overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+            className="group relative overflow-hidden rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
           >
             <span
               className="absolute inset-x-0 top-0 h-1"
@@ -259,9 +259,9 @@ export default function TicketAnalysisPage() {
             <CardContent className="p-5">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">{card.title}</p>
-                  <p className="mt-1 text-3xl font-bold text-slate-900">{card.value}</p>
-                  <p className="mt-1 text-xs font-medium text-slate-500">{card.description}</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">{card.title}</p>
+                  <p className="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">{card.value}</p>
+                  <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">{card.description}</p>
                 </div>
 
                 <div className={cn('flex h-11 w-11 items-center justify-center rounded-xl ring-1 ring-black/5', card.iconBg)}>
@@ -283,13 +283,13 @@ export default function TicketAnalysisPage() {
           </CardContent>
         </Card>
       ) : hasNoData ? (
-        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
+        <Card className="rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm">
           <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 ring-1 ring-slate-200">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 ring-1 ring-slate-200">
               <CalendarClock className="h-7 w-7" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900">No Data Available</h3>
-            <p className="max-w-md text-sm font-medium text-slate-500">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">No Data Available</h3>
+            <p className="max-w-md text-sm font-medium text-slate-500 dark:text-slate-400">
               No tickets are available for {dateRangeLabels[dateRange]}. Try another date range or refresh.
             </p>
           </CardContent>
@@ -297,19 +297,19 @@ export default function TicketAnalysisPage() {
       ) : isLoading ? (
         <div className="grid gap-4 md:grid-cols-2">
           {[...Array(2)].map((_, index) => (
-            <Card key={index} className="rounded-2xl border-slate-200 bg-white shadow-sm">
+            <Card key={index} className="rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm">
               <CardContent className="p-6">
-                <div className="h-56 animate-pulse rounded-xl bg-slate-100" />
+                <div className="h-56 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
               </CardContent>
             </Card>
           ))}
         </div>
       ) : (
         <section className="space-y-4">
-          <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
+          <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">
             <PieChart className="h-4 w-4 text-indigo-500" />
             Distribution Overview
-            {isFetching && <Loader2 className="h-4 w-4 animate-spin text-slate-400" />}
+            {isFetching && <Loader2 className="h-4 w-4 animate-spin text-slate-400 dark:text-slate-500" />}
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">

@@ -373,7 +373,7 @@ export default function FacilitiesAssistant({ resources, onApplyFilters, mode = 
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <CardTitle className="flex items-center gap-2 text-base text-slate-900">
+                <CardTitle className="flex items-center gap-2 text-base text-slate-900 dark:text-slate-100">
                   <Bot className="h-4 w-4" />
                   {mode === 'category' ? 'Category Assistant' : 'Facilities Assistant'}
                 </CardTitle>
@@ -391,21 +391,21 @@ export default function FacilitiesAssistant({ resources, onApplyFilters, mode = 
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="h-56 space-y-3 overflow-y-auto rounded-xl border border-indigo-100 bg-white p-3">
+            <div className="h-56 space-y-3 overflow-y-auto rounded-xl border border-indigo-100 bg-white dark:bg-gray-900 p-3">
               {currentQuestion ? (
                 <div className="space-y-3">
                   <div className="space-y-1">
-                    <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">You</p>
+                    <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">You</p>
                     <div className="text-sm">{currentQuestion}</div>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Assistant</p>
+                    <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Assistant</p>
                     <div className="text-sm whitespace-pre-line">{currentReply.text}</div>
                     {currentReply.filterPatch && (
                       <Button
                         variant="outline"
                         size="sm"
-                        className="rounded-xl border-slate-300"
+                        className="rounded-xl border-slate-300 dark:border-slate-600"
                         onClick={() => onApplyFilters(currentReply.filterPatch)}
                       >
                         Apply these filters
@@ -415,7 +415,7 @@ export default function FacilitiesAssistant({ resources, onApplyFilters, mode = 
                 </div>
               ) : (
                 <div className="space-y-1">
-                  <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Assistant</p>
+                  <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Assistant</p>
                   <div className="text-sm whitespace-pre-line">{currentReply.text}</div>
                 </div>
               )}
@@ -427,7 +427,7 @@ export default function FacilitiesAssistant({ resources, onApplyFilters, mode = 
                   key={chip}
                   variant="outline"
                   size="sm"
-                  className="h-8 rounded-xl border-slate-300 bg-white"
+                  className="h-8 rounded-xl border-slate-300 dark:border-slate-600 bg-white dark:bg-gray-800"
                   onClick={() => sendMessage(chip)}
                 >
                   <MessageCircle className="h-3.5 w-3.5 mr-1" />
@@ -452,14 +452,14 @@ export default function FacilitiesAssistant({ resources, onApplyFilters, mode = 
                 placeholder={mode === 'category'
                   ? 'Ask in this category (name, category, location, amount/capacity)'
                   : 'Ask about facilities (type, status, capacity, location)'}
-                className="rounded-xl border-slate-200 bg-slate-50"
+                className="rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
               {isVoiceSupported && (
                 <Button
                   type="button"
                   size="icon"
                   variant="outline"
-                  className={`rounded-xl border-slate-300 ${isListening ? 'bg-rose-50 text-rose-600 border-rose-300' : ''}`}
+                  className={`rounded-xl border-slate-300 dark:border-slate-600 ${isListening ? 'bg-rose-50 text-rose-600 border-rose-300' : ''}`}
                   onClick={toggleVoiceInput}
                   aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
                 >

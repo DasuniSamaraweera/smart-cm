@@ -21,12 +21,12 @@ const BOOKING_STATUS_STYLES = {
   PENDING:  'bg-amber-100 text-amber-800',
   APPROVED: 'bg-green-100 text-green-800',
   REJECTED: 'bg-red-100 text-red-800',
-  CANCELLED:'bg-gray-100 text-gray-600',
+  CANCELLED:'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300',
 }
 
 function BookingStatusBadge({ status }) {
   return (
-    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${BOOKING_STATUS_STYLES[status] ?? 'bg-gray-100 text-gray-600'}`}>
+    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${BOOKING_STATUS_STYLES[status] ?? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>
       {status}
     </span>
   )
@@ -107,21 +107,21 @@ export default function DashboardPage() {
       {/* Welcome */}
       <div className="rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-cyan-500/10 p-5 shadow-sm">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-500">Operations Snapshot</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
           Welcome back, {user?.name?.split(' ')[0] || 'User'} 👋
         </h1>
-        <p className="mt-1 text-sm text-slate-600">Here's an overview of the campus operations today.</p>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Here's an overview of the campus operations today.</p>
       </div>
 
       {/* Stats grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.title} className="rounded-2xl border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <Card key={stat.title} className="rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">{stat.title}</p>
-                  <p className="mt-1 text-3xl font-bold text-slate-900">{stat.value}</p>
+                  <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">{stat.title}</p>
+                  <p className="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">{stat.value}</p>
                 </div>
                 <div className={`flex h-12 w-12 items-center justify-center rounded-xl ring-1 ring-black/5 ${stat.bg}`}>
                   <stat.icon className={`h-6 w-6 ${stat.color}`} />
@@ -135,15 +135,15 @@ export default function DashboardPage() {
       {/* Recent activity */}
       <div className="grid gap-4 md:grid-cols-2">
         {/* Recent Bookings */}
-        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
+        <Card className="rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg text-slate-900">Recent Bookings</CardTitle>
+            <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Recent Bookings</CardTitle>
           </CardHeader>
           <CardContent>
             {bookingsLoading ? (
-              <p className="text-sm text-slate-600">Loading bookings...</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Loading bookings...</p>
             ) : recentBookings.length === 0 ? (
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
                 No bookings yet.{' '}
                 <Link to="/bookings" className="underline hover:text-foreground">
                   Create your first booking
@@ -152,10 +152,10 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-3">
                 {recentBookings.map((booking) => (
-                  <div key={booking.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                  <div key={booking.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 p-3">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-slate-900">{booking.resource?.name}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{booking.resource?.name}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {new Date(booking.startTime).toLocaleDateString('en-GB', {
                           day: '2-digit', month: 'short', year: 'numeric',
                         })}
@@ -172,34 +172,34 @@ export default function DashboardPage() {
         </Card>
 
         {/* Recent Tickets */}
-        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
+        <Card className="rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg text-slate-900">Recent Tickets</CardTitle>
+            <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Recent Tickets</CardTitle>
           </CardHeader>
           <CardContent>
             {ticketsLoading ? (
-              <p className="text-sm text-slate-600">Loading tickets...</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Loading tickets...</p>
             ) : recentTickets.length === 0 ? (
-              <p className="text-sm text-slate-600">No tickets yet. Report an issue from the Tickets page.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">No tickets yet. Report an issue from the Tickets page.</p>
             ) : (
               <div className="space-y-3">
                 {recentTickets.map((ticket) => (
                   <div
                     key={ticket.id}
-                    className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 transition-all hover:bg-slate-100/80 hover:shadow-sm"
+                    className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 px-4 py-3 transition-all hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:shadow-sm"
                   >
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-200/80 text-slate-500">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700/80 text-slate-500 dark:text-slate-400">
                         <TicketCheck className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
                         <Link
                           to={`/tickets/${ticket.id}`}
-                          className="block truncate text-sm font-semibold text-slate-900 hover:underline"
+                          className="block truncate text-sm font-semibold text-slate-900 dark:text-slate-100 hover:underline"
                         >
                           {ticket.title}
                         </Link>
-                        <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                        <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
                           <span>{ticket.id}</span>
                           <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
                           <span>{ticket.reporter?.name || 'N/A'}</span>
@@ -208,7 +208,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex shrink-0 items-center gap-3">
                       <Badge variant={statusVariant[ticket.status] || 'secondary'}>{ticket.status}</Badge>
-                      <ChevronRight className="h-4 w-4 text-slate-400" />
+                      <ChevronRight className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                     </div>
                   </div>
                 ))}
