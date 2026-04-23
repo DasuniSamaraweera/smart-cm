@@ -110,6 +110,7 @@ export default function UserManagementPage() {
   const adminCount      = users.filter(u => u.role === 'ADMIN').length
   const userCount       = users.filter(u => u.role === 'USER').length
   const technicianCount = users.filter(u => u.role === 'TECHNICIAN').length
+  const lecturerCount   = users.filter(u => u.role === 'LECTURER').length
 
   return (
     <div className="space-y-6 pb-2">
@@ -131,12 +132,13 @@ export default function UserManagementPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-5">
         {[
           { label: 'Total Users',  value: users.length,      icon: Users,      bg: 'bg-blue-100',    ring: 'ring-blue-200/60',    iconColor: 'text-blue-600' },
           { label: 'Admins',       value: adminCount,         icon: ShieldCheck, bg: 'bg-red-100',    ring: 'ring-red-200/60',     iconColor: 'text-red-600' },
           { label: 'Regular Users', value: userCount,         icon: Shield,     bg: 'bg-emerald-100', ring: 'ring-emerald-200/60', iconColor: 'text-emerald-600' },
           { label: 'Technicians',  value: technicianCount,    icon: UserCog,    bg: 'bg-amber-100',   ring: 'ring-amber-200/60',   iconColor: 'text-amber-600' },
+          { label: 'Academic Staff', value: lecturerCount,    icon: UserCog,    bg: 'bg-violet-100',  ring: 'ring-violet-200/60',  iconColor: 'text-violet-600' },
         ].map(({ label, value, icon: Icon, bg, ring, iconColor }) => (
           <Card key={label} className="rounded-2xl border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="flex items-center gap-3 p-4">
@@ -163,8 +165,8 @@ export default function UserManagementPage() {
             className="pl-9 rounded-xl border-slate-200 bg-slate-50"
           />
         </div>
-        <div className="flex gap-2">
-          {['ALL', 'ADMIN', 'USER', 'TECHNICIAN'].map(role => (
+        <div className="flex gap-2 flex-wrap">
+          {['ALL', 'ADMIN', 'USER', 'TECHNICIAN', 'LECTURER'].map(role => (
             <Button
               key={role}
               size="sm"
@@ -172,7 +174,7 @@ export default function UserManagementPage() {
               onClick={() => setRoleFilter(role)}
               className="rounded-xl text-xs"
             >
-              {role === 'ALL' ? 'All' : role.charAt(0) + role.slice(1).toLowerCase()}
+              {role === 'ALL' ? 'All' : role === 'LECTURER' ? 'Academic Staff' : role.charAt(0) + role.slice(1).toLowerCase()}
             </Button>
           ))}
         </div>
