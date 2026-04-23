@@ -17,6 +17,11 @@ const statusVariant = {
   REJECTED: 'destructive',
 }
 
+const statusDarkModeClass = {
+  OPEN: 'dark:bg-blue-900 dark:text-blue-300',
+  CLOSED: 'dark:bg-slate-700 dark:text-slate-300',
+}
+
 const BOOKING_STATUS_STYLES = {
   PENDING:  'bg-amber-100 text-amber-800',
   APPROVED: 'bg-green-100 text-green-800',
@@ -207,7 +212,12 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className="flex shrink-0 items-center gap-3">
-                      <Badge variant={statusVariant[ticket.status] || 'secondary'}>{ticket.status}</Badge>
+                      <Badge
+                        variant={statusVariant[ticket.status] || 'secondary'}
+                        className={statusDarkModeClass[ticket.status] ?? ''}
+                      >
+                        {ticket.status}
+                      </Badge>
                       <ChevronRight className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                     </div>
                   </div>

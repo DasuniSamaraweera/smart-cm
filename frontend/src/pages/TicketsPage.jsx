@@ -17,6 +17,11 @@ const statusVariant = {
   REJECTED: 'destructive',
 }
 
+const statusDarkModeClass = {
+  OPEN: 'dark:bg-blue-900 dark:text-blue-300',
+  CLOSED: 'dark:bg-slate-700 dark:text-slate-300',
+}
+
 const statusOptions = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'REJECTED']
 const priorityOptions = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
 
@@ -168,7 +173,7 @@ export default function TicketsPage() {
                   </CardTitle>
                   <Badge
                     variant={statusVariant[ticket.status] || 'secondary'}
-                    className="shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide"
+                    className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide ${statusDarkModeClass[ticket.status] ?? ''}`}
                   >
                     {ticket.status}
                   </Badge>
