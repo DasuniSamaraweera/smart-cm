@@ -6,6 +6,7 @@ import com.smartcampus.service.TicketService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ContentDisposition;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 
 @RestController
@@ -98,7 +100,8 @@ public class TicketController {
     @GetMapping("/{ticketId}/attachments/{attachmentId}")
     public ResponseEntity<byte[]> viewAttachment(
             @PathVariable Long ticketId,
-            @PathVariable Long attachmentId) {
+            @PathVariable Long attachmentId,
+            @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
         TicketAttachment attachment = ticketService.getAttachment(ticketId, attachmentId);
 
         MediaType mediaType;
@@ -112,9 +115,21 @@ public class TicketController {
                 .filename(attachment.getFileName(), StandardCharsets.UTF_8)
                 .build();
 
+        String etag = "\"" + attachment.getId() + "-" + (attachment.getUploadedAt() == null ? "0" : attachment.getUploadedAt()) + "\"";
+        CacheControl cacheControl = CacheControl.maxAge(Duration.ofMinutes(10)).cachePrivate().mustRevalidate();
+
+        if (etag.equals(ifNoneMatch)) {
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+                .eTag(etag)
+                .cacheControl(cacheControl)
+                .build();
+        }
+
         return ResponseEntity.ok()
                 .contentType(mediaType)
                 .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+            .cacheControl(cacheControl)
+            .eTag(etag)
                 .body(attachment.getFileData());
     }
 

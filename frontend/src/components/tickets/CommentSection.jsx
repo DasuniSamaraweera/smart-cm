@@ -20,17 +20,23 @@ export default function CommentSection({ ticketId, initialComments = [], onComme
 
   const isOwner = (comment) => Number(comment?.author?.id) === Number(user?.id);
 
+  const syncComments = (updater) => {
+    setComments((prev) => {
+      const nextComments = typeof updater === 'function' ? updater(prev) : updater;
+      if (onCommentAdded) {
+        onCommentAdded(nextComments);
+      }
+      return nextComments;
+    });
+  };
+
   const handleAdd = async () => {
     if (!newComment.trim()) return;
     
     setLoading(true);
     try {
       const res = await ticketApi.addComment(ticketId, { content: newComment });
-      if (onCommentAdded) {
-        await onCommentAdded();
-      } else {
-        setComments((prev) => [...prev, res.data]);
-      }
+      syncComments((prev) => [...prev, res.data]);
       setNewComment('');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to add comment');
@@ -59,11 +65,7 @@ export default function CommentSection({ ticketId, initialComments = [], onComme
       setActionLoadingId(commentId);
       const res = await ticketApi.updateComment(ticketId, commentId, { content: editingContent.trim() });
 
-      if (onCommentAdded) {
-        await onCommentAdded();
-      } else {
-        setComments((prev) => prev.map((comment) => (comment.id === commentId ? res.data : comment)));
-      }
+      syncComments((prev) => prev.map((comment) => (comment.id === commentId ? res.data : comment)));
 
       handleCancelEdit();
       toast.success('Comment updated');
@@ -83,11 +85,7 @@ export default function CommentSection({ ticketId, initialComments = [], onComme
       setActionLoadingId(commentId);
       await ticketApi.deleteComment(ticketId, commentId);
 
-      if (onCommentAdded) {
-        await onCommentAdded();
-      } else {
-        setComments((prev) => prev.filter((comment) => comment.id !== commentId));
-      }
+      syncComments((prev) => prev.filter((comment) => comment.id !== commentId));
 
       if (editingCommentId === commentId) {
         handleCancelEdit();

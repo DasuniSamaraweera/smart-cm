@@ -9,6 +9,7 @@ import com.smartcampus.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,27 @@ public class NotificationService {
                 .read(false)
                 .build();
         notificationRepository.save(notification);
+    }
+
+    public void createNotifications(List<User> users, String message, NotificationType type, Long referenceId) {
+        if (users == null || users.isEmpty()) {
+            return;
+        }
+
+        List<Notification> notifications = new ArrayList<>(users.size());
+        for (User user : users) {
+            notifications.add(
+                    Notification.builder()
+                            .user(user)
+                            .message(message)
+                            .type(type)
+                            .referenceId(referenceId)
+                            .read(false)
+                            .build()
+            );
+        }
+
+        notificationRepository.saveAll(notifications);
     }
 
     public List<NotificationResponse> getUserNotifications(User user) {

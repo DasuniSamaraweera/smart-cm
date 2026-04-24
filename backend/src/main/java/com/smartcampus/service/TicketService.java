@@ -82,14 +82,12 @@ public class TicketService {
 
         Ticket saved = ticketRepository.save(ticket);
         List<User> admins = userRepository.findByRole(UserRole.ADMIN);
-        for (User admin : admins) {
-            notificationService.createNotification(
-                admin,
+        notificationService.createNotifications(
+                admins,
                 "New ticket raised: \"" + ticket.getTitle() + "\" by " + reporter.getName(),
                 NotificationType.TICKET_STATUS_CHANGED,
                 saved.getId()
-            );
-        }
+        );
         return mapToResponse(saved);
     }
 
@@ -178,7 +176,7 @@ public class TicketService {
                 saved.getId()
             );
         }
-        return buildDetailResponse(saved);
+        return mapToActionResponse(saved);
     }
 
     @Transactional
@@ -215,7 +213,7 @@ public class TicketService {
                 saved.getId()
             );
         }
-        return buildDetailResponse(saved);
+        return mapToActionResponse(saved);
     }
 
     @Transactional
@@ -729,6 +727,26 @@ public class TicketService {
                 .rejectionReason(ticket.getRejectionReason())
                 .attachments(ticket.getAttachments() != null ? ticket.getAttachments().stream().map(this::mapAttachmentToResponse).collect(Collectors.toList()) : null)
                 .comments(ticket.getComments() != null ? ticket.getComments().stream().map(this::mapCommentToResponse).collect(Collectors.toList()) : null)
+                .createdAt(ticket.getCreatedAt())
+                .updatedAt(ticket.getUpdatedAt())
+                .build();
+    }
+
+    private TicketResponse mapToActionResponse(Ticket ticket) {
+        return TicketResponse.builder()
+                .id(ticket.getId())
+                .title(ticket.getTitle())
+                .description(ticket.getDescription())
+                .category(ticket.getCategory())
+                .priority(ticket.getPriority())
+                .status(ticket.getStatus())
+                .resource(mapResourceToResponse(ticket.getResource()))
+                .reporter(mapUserToDTO(ticket.getReporter()))
+                .assignedTo(mapUserToDTO(ticket.getAssignedTo()))
+                .contactEmail(ticket.getContactEmail())
+                .contactPhone(ticket.getContactPhone())
+                .resolutionNotes(ticket.getResolutionNotes())
+                .rejectionReason(ticket.getRejectionReason())
                 .createdAt(ticket.getCreatedAt())
                 .updatedAt(ticket.getUpdatedAt())
                 .build();

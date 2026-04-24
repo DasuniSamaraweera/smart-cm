@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -42,16 +42,50 @@ export default function TicketDetails() {
   const [loading, setLoading] = useState(true);
   const attachmentUrlsRef = useRef({});
 
-  const applyTicketState = (ticketData) => {
-    setTicket(ticketData);
-    setSelectedAssignee(ticketData.assignedTo?.id ? String(ticketData.assignedTo.id) : '');
-    setResolutionNotesInput(ticketData.resolutionNotes || '');
-    setRejectionReasonInput(ticketData.rejectionReason || '');
-  };
+  const applyTicketState = useCallback((ticketData) => {
+    setTicket((prev) => {
+      const next = { ...(prev || {}), ...ticketData };
+
+      // Preserve existing lists when action responses omit unchanged collections.
+      if (ticketData.attachments == null && prev?.attachments) {
+        next.attachments = prev.attachments;
+      }
+      if (ticketData.comments == null && prev?.comments) {
+        next.comments = prev.comments;
+      }
+
+      return next;
+    });
+
+    setSelectedAssignee((prev) => {
+      if (ticketData.assignedTo === undefined) {
+        return prev;
+      }
+      return ticketData.assignedTo?.id ? String(ticketData.assignedTo.id) : '';
+    });
+
+    setResolutionNotesInput((prev) => (
+      ticketData.resolutionNotes === undefined ? prev : (ticketData.resolutionNotes || '')
+    ));
+    setRejectionReasonInput((prev) => (
+      ticketData.rejectionReason === undefined ? prev : (ticketData.rejectionReason || '')
+    ));
+  }, []);
+
+  const fetchTicket = useCallback(async () => {
+    try {
+      const res = await ticketApi.getById(id);
+      applyTicketState(res.data);
+    } catch (err) {
+      console.error("Failed to load ticket", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [id, applyTicketState]);
 
   useEffect(() => {
     fetchTicket();
-  }, [id]);
+  }, [fetchTicket]);
 
   useEffect(() => {
     if (isAdmin) {
@@ -136,16 +170,9 @@ export default function TicketDetails() {
     };
   }, []);
 
-  const fetchTicket = async () => {
-    try {
-      const res = await ticketApi.getById(id);
-      applyTicketState(res.data);
-    } catch (err) {
-      console.error("Failed to load ticket", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleCommentsChange = useCallback((nextComments) => {
+    setTicket((prev) => (prev ? { ...prev, comments: nextComments } : prev));
+  }, []);
 
   const fetchAssignees = async () => {
     try {
@@ -382,7 +409,11 @@ export default function TicketDetails() {
               <CardTitle className="text-lg">Discussion</CardTitle>
             </CardHeader>
             <CardContent>
-              <CommentSection ticketId={ticket.id} initialComments={ticket.comments || []} onCommentAdded={fetchTicket} />
+              <CommentSection
+                ticketId={ticket.id}
+                initialComments={ticket.comments || []}
+                onCommentAdded={handleCommentsChange}
+              />
             </CardContent>
           </Card>
         </div>
