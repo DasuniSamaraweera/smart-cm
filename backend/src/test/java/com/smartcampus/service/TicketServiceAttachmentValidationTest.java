@@ -7,6 +7,7 @@ import com.smartcampus.exception.ForbiddenException;
 import com.smartcampus.model.Ticket;
 import com.smartcampus.model.TicketAttachment;
 import com.smartcampus.model.User;
+import com.smartcampus.model.enums.NotificationType;
 import com.smartcampus.model.enums.TicketPriority;
 import com.smartcampus.model.enums.UserRole;
 import com.smartcampus.repository.ResourceRepository;
@@ -29,6 +30,9 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -55,6 +59,9 @@ class TicketServiceAttachmentValidationTest {
 
     @Mock
     private CurrentUser currentUser;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private TicketService ticketService;
@@ -112,7 +119,12 @@ class TicketServiceAttachmentValidationTest {
     @Test
     void shouldCreateTicketWithValidImageAttachment() {
         mockAuthenticatedReporter();
-        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.findByRole(UserRole.ADMIN)).thenReturn(List.of());
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> {
+            Ticket savedTicket = invocation.getArgument(0);
+            savedTicket.setId(100L);
+            return savedTicket;
+        });
 
         TicketResponse response = ticketService.createTicket(validRequest(), List.of(jpegFile("projector.jpg")));
 
@@ -120,6 +132,7 @@ class TicketServiceAttachmentValidationTest {
         assertEquals("projector.jpg", response.getAttachments().get(0).getFileName());
         assertEquals("image/jpeg", response.getAttachments().get(0).getFileType());
         verify(ticketRepository).save(any(Ticket.class));
+        verify(notificationService).createNotifications(anyList(), anyString(), any(NotificationType.class), anyLong());
     }
 
     @Test
