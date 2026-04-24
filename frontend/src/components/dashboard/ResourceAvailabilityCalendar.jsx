@@ -6,6 +6,14 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
 const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const CALENDAR_HIDDEN_RESOURCE_TERMS = ['eternia', 'projector']
+
+function shouldHideFromCalendar(resource) {
+  const name = String(resource?.name || '').toLowerCase()
+  if (!name) return false
+
+  return CALENDAR_HIDDEN_RESOURCE_TERMS.some((term) => name.includes(term))
+}
 
 function getDayBounds(date) {
   const dayStart = new Date(date)
@@ -78,7 +86,7 @@ export default function ResourceAvailabilityCalendar({ resources = [], bookings 
   const [selectedDate, setSelectedDate] = useState(new Date())
 
   const activeResources = useMemo(
-    () => resources.filter((resource) => resource.status === 'ACTIVE'),
+    () => resources.filter((resource) => resource.status === 'ACTIVE' && !shouldHideFromCalendar(resource)),
     [resources],
   )
 
