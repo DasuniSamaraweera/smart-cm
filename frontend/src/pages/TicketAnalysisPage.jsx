@@ -27,20 +27,22 @@ import TicketPieChartCard from '@/components/dashboard/TicketPieChartCard'
 
 const PAGE_SIZE = 100
 
-const statusOrder = ['OPEN', 'CLOSED', 'IN_PROGRESS', 'REJECTED']
+const statusOrder = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'REJECTED']
 const priorityOrder = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
 
 const statusLabels = {
   OPEN: 'Open',
-  CLOSED: 'Closed',
   IN_PROGRESS: 'In Progress',
+  RESOLVED: 'Resolved',
+  CLOSED: 'Closed',
   REJECTED: 'Rejected',
 }
 
 const statusColors = {
   OPEN: '#0ea5e9',
-  CLOSED: '#22c55e',
   IN_PROGRESS: '#f59e0b',
+  RESOLVED: '#22c55e',
+  CLOSED: '#6b7280',
   REJECTED: '#ef4444',
 }
 
@@ -123,10 +125,8 @@ export default function TicketAnalysisPage() {
     const counts = statusOrder.reduce((acc, status) => ({ ...acc, [status]: 0 }), {})
 
     filteredTickets.forEach((ticket) => {
-      const normalizedStatus = ticket.status === 'RESOLVED' ? 'CLOSED' : ticket.status
-
-      if (counts[normalizedStatus] !== undefined) {
-        counts[normalizedStatus] += 1
+      if (counts[ticket.status] !== undefined) {
+        counts[ticket.status] += 1
       }
     })
 
@@ -175,7 +175,7 @@ export default function TicketAnalysisPage() {
       key: 'status',
       title: 'Status Tickets',
       value: isLoading ? '...' : trackedStatusTotal,
-      description: 'OPEN, CLOSED, IN_PROGRESS, REJECTED',
+      description: 'OPEN, IN_PROGRESS, RESOLVED, CLOSED, REJECTED',
       icon: Activity,
       iconColor: 'text-sky-600',
       iconBg: 'bg-sky-100',
