@@ -141,32 +141,32 @@ export default function ResourceAvailabilityCalendar({ resources = [], bookings 
   }
 
   return (
-    <Card className="border-slate-200 bg-white shadow-sm">
+    <Card className="border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm">
       <CardHeader className="space-y-3">
         <div className="flex flex-row items-center justify-between space-y-0">
           <div>
-            <CardTitle className="text-lg text-slate-900">Resource Availability Calendar</CardTitle>
-            <p className="mt-1 text-sm text-slate-600">
+            <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Resource Availability Calendar</CardTitle>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
               Daily availability based on active resources and approved bookings.
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button type="button" variant="outline" size="icon" className="h-8 w-8 rounded-md border-slate-300" onClick={goToPreviousMonth}>
+            <Button type="button" variant="outline" size="icon" className="h-8 w-8 rounded-md border-slate-300 dark:border-slate-600" onClick={goToPreviousMonth}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <p className="w-44 text-center text-sm font-semibold text-slate-800">
+            <p className="w-44 text-center text-sm font-semibold text-slate-800 dark:text-slate-200">
               {visibleMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
             </p>
-            <Button type="button" variant="outline" size="icon" className="h-8 w-8 rounded-md border-slate-300" onClick={goToNextMonth}>
+            <Button type="button" variant="outline" size="icon" className="h-8 w-8 rounded-md border-slate-300 dark:border-slate-600" onClick={goToNextMonth}>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        <div className="flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+        <div className="flex items-center justify-between rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs text-slate-600 dark:text-slate-400">
           <span className="font-medium">Calendar View</span>
           <div className="flex items-center gap-1">
-            <span className="rounded bg-white px-2 py-0.5 text-slate-800 shadow-sm">Month</span>
+            <span className="rounded bg-white dark:bg-gray-900 px-2 py-0.5 text-slate-800 dark:text-slate-200 shadow-sm">Month</span>
             <span className="rounded px-2 py-0.5">Week</span>
             <span className="rounded px-2 py-0.5">Day</span>
           </div>
@@ -174,12 +174,12 @@ export default function ResourceAvailabilityCalendar({ resources = [], bookings 
       </CardHeader>
 
       <CardContent className="space-y-5">
-        <div className="overflow-hidden rounded-md border border-slate-200">
-          <div className="grid grid-cols-7 bg-slate-50">
+        <div className="overflow-hidden rounded-md border border-slate-200 dark:border-slate-700">
+          <div className="grid grid-cols-7 bg-slate-50 dark:bg-slate-800">
             {WEEK_DAYS.map((day) => (
               <p
                 key={day}
-                className="border-b border-r border-slate-200 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 last:border-r-0"
+                className="border-b border-r border-slate-200 dark:border-slate-700 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400 last:border-r-0"
               >
                 {day}
               </p>
@@ -205,11 +205,11 @@ export default function ResourceAvailabilityCalendar({ resources = [], bookings 
                   key={date.toISOString()}
                   onClick={() => setSelectedDate(date)}
                   className={cn(
-                    'h-16 border-b border-r border-slate-200 p-1.5 text-left transition-colors sm:h-20',
+                    'h-16 border-b border-r border-slate-200 dark:border-slate-700 p-1.5 text-left transition-colors sm:h-20',
                     'flex flex-col justify-between',
-                    !inCurrentMonth && 'bg-slate-50 text-slate-400',
+                    !inCurrentMonth && 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500',
                     isSelected && 'bg-amber-50 ring-1 ring-inset ring-amber-300',
-                    !isSelected && 'hover:bg-slate-50/80',
+                    !isSelected && 'hover:bg-slate-50 dark:hover:bg-slate-800/80',
                   )}
                 >
                   <p className={cn('text-xs font-semibold sm:text-sm', isToday && 'text-indigo-600')}>{date.getDate()}</p>
@@ -222,10 +222,10 @@ export default function ResourceAvailabilityCalendar({ resources = [], bookings 
           </div>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-4">
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="font-medium text-slate-900">
+              <h3 className="font-medium text-slate-900 dark:text-slate-100">
                 {selectedDate.toLocaleDateString(undefined, {
                   weekday: 'long',
                   day: 'numeric',
@@ -233,7 +233,7 @@ export default function ResourceAvailabilityCalendar({ resources = [], bookings 
                   year: 'numeric',
                 })}
               </h3>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
                 {activeResources.length === 0
                   ? 'No active resources configured.'
                   : `${selectedDay.availableCount} of ${selectedDay.resourcesForDate.length} resources available for this date`}

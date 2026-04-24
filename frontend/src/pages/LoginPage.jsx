@@ -45,16 +45,16 @@ export default function LoginPage() {
                   <GraduationCap className="h-7 w-7" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-slate-900">Smart Campus</h1>
+                  <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Smart Campus</h1>
                   <p className="text-blue-600 text-sm">Operations Hub</p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <h2 className="text-4xl font-bold text-slate-900 leading-tight">
+                <h2 className="text-4xl font-bold text-slate-900 dark:text-slate-100 leading-tight">
                   Manage bookings, support, and campus operations from one place.
                 </h2>
-                <p className="text-slate-600 text-lg">
+                <p className="text-slate-600 dark:text-slate-400 text-lg">
                   Smart Campus brings together resource reservations, support workflows, and real-time notifications into one modern platform for students, staff, and administrators.
                 </p>
               </div>
@@ -72,8 +72,8 @@ export default function LoginPage() {
                       </div>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-900">{feature.title}</h3>
-                      <p className="text-slate-600 text-sm">{feature.description}</p>
+                      <h3 className="font-semibold text-slate-900 dark:text-slate-100">{feature.title}</h3>
+                      <p className="text-slate-600 dark:text-slate-400 text-sm">{feature.description}</p>
                     </div>
                   </div>
                 )
@@ -83,7 +83,7 @@ export default function LoginPage() {
 
           {/* Right Side - Sign In Form */}
           <div className="flex flex-col items-center justify-center">
-            <Card className="w-full max-w-md shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+            <Card className="w-full max-w-md shadow-2xl border-0 bg-white dark:bg-gray-900/95 backdrop-blur-sm">
               <CardHeader className="space-y-2 pb-6">
                 <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
                 <CardDescription className="text-center text-base">
@@ -120,10 +120,10 @@ export default function LoginPage() {
 
                 {/* Footer Text */}
                 <div className="space-y-2 pt-2">
-                  <p className="text-xs text-center text-gray-500">
+                  <p className="text-xs text-center text-gray-500 dark:text-gray-400">
                     By signing in, you agree to our campus usage policies and terms of service.
                   </p>
-                  <p className="text-xs text-center text-gray-400">
+                  <p className="text-xs text-center text-gray-400 dark:text-gray-500">
                     Need help? <span className="text-blue-600 font-medium cursor-pointer hover:text-blue-700">Contact IT support</span>
                   </p>
                 </div>

@@ -146,17 +146,7 @@ public class TicketService {
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
         assertCanView(ticket);
 
-        List<AttachmentResponse> attachmentResponses = ticketAttachmentRepository.findMetadataByTicketId(ticketId)
-            .stream()
-            .map(this::mapAttachmentMetadataToResponse)
-            .collect(Collectors.toList());
-
-        List<CommentResponse> commentResponses = commentRepository.findByTicketIdOrderByCreatedAtAsc(ticketId)
-            .stream()
-            .map(this::mapCommentToResponse)
-            .collect(Collectors.toList());
-
-        return mapToDetailResponse(ticket, attachmentResponses, commentResponses);
+        return buildDetailResponse(ticket);
     }
 
     @Transactional
@@ -188,6 +178,20 @@ public class TicketService {
                 saved.getId()
             );
         }
+        
+        // Notify all admins when a technician resolves a ticket
+        if (statusUpdate.getStatus() == TicketStatus.RESOLVED && user.getRole() == UserRole.TECHNICIAN) {
+            List<User> admins = userRepository.findByRole(UserRole.ADMIN);
+            for (User admin : admins) {
+                notificationService.createNotification(
+                    admin,
+                    "Ticket \"" + ticket.getTitle() + "\" has been resolved by " + user.getName(),
+                    NotificationType.TICKET_STATUS_CHANGED,
+                    saved.getId()
+                );
+            }
+        }
+        
         return mapToResponse(saved);
     }
 
@@ -225,8 +229,17 @@ public class TicketService {
                 saved.getId()
             );
         }
+        
+        // Notify the assigned technician
+        notificationService.createNotification(
+            assignee,
+            "You have been assigned to ticket: \"" + ticket.getTitle() + "\"",
+            NotificationType.TICKET_ASSIGNED,
+            saved.getId()
+        );
+        
         return mapToResponse(saved);
-    }
+        }
 
     @Transactional
     public CommentResponse addComment(Long ticketId, CommentRequest request) {
@@ -584,6 +597,21 @@ public class TicketService {
         if (isGif(data)) return "image/gif";
         if (isWebp(data)) return "image/webp";
         return null;
+    }
+
+    private TicketResponse buildDetailResponse(Ticket ticket) {
+        Long ticketId = ticket.getId();
+        List<AttachmentResponse> attachmentResponses = ticketAttachmentRepository.findMetadataByTicketId(ticketId)
+                .stream()
+                .map(this::mapAttachmentMetadataToResponse)
+                .collect(Collectors.toList());
+
+        List<CommentResponse> commentResponses = commentRepository.findByTicketIdOrderByCreatedAtAsc(ticketId)
+                .stream()
+                .map(this::mapCommentToResponse)
+                .collect(Collectors.toList());
+
+        return mapToDetailResponse(ticket, attachmentResponses, commentResponses);
     }
 
     private boolean isJpeg(byte[] data) {

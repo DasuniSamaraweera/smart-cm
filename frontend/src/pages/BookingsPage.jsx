@@ -187,7 +187,7 @@ function BookingAnalytics({ bookings }) {
                     {count} booking{count > 1 ? 's' : ''}
                   </span>
                 </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full bg-gradient-to-r ${colors[index % colors.length]} transition-all duration-500`}
                     style={{ width: `${pct}%` }}
@@ -227,7 +227,7 @@ function BookingAnalytics({ bookings }) {
                     {count} booking{count > 1 ? 's' : ''}
                   </span>
                 </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
                       isTopHour
