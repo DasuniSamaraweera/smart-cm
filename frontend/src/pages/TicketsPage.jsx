@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { PlusCircle, TicketCheck, User, UserCheck } from 'lucide-react'
+import { AlertTriangle, PlusCircle, Tag, TicketCheck, User, UserCheck } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,11 @@ const statusVariant = {
   RESOLVED: 'success',
   CLOSED: 'closed',
   REJECTED: 'destructive',
+}
+
+const statusDarkModeClass = {
+  OPEN: 'dark:bg-blue-900 dark:text-blue-300',
+  CLOSED: 'dark:bg-slate-700 dark:text-slate-300',
 }
 
 const statusOptions = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'REJECTED']
@@ -62,14 +67,14 @@ export default function TicketsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-3xl border border-indigo-100/70 bg-gradient-to-r from-indigo-50 via-sky-50 to-cyan-50 px-6 py-7 shadow-sm">
+      <div className="relative overflow-hidden rounded-3xl border border-indigo-100/70 bg-gradient-to-r from-indigo-50 via-sky-50 to-cyan-50 dark:bg-gradient-to-r dark:from-gray-800 dark:via-gray-900 dark:to-gray-900 px-6 py-7 shadow-sm">
         <div className="pointer-events-none absolute -left-10 top-1/2 h-28 w-28 -translate-y-1/2 rounded-full bg-indigo-200/25 blur-2xl" />
         <div className="pointer-events-none absolute -right-14 top-0 h-36 w-36 rounded-full bg-sky-200/30 blur-2xl" />
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-500">Ticket Workspace</p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">{title}</h1>
-            <p className="mt-2 text-base text-slate-600">{subtitle}</p>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">{title}</h1>
+            <p className="mt-2 text-base text-slate-600 dark:text-slate-400">{subtitle}</p>
           </div>
           {isRegularUser && (
             <Button className="h-11 rounded-xl px-5 shadow-sm" onClick={() => navigate('/tickets/create')}>
@@ -158,31 +163,31 @@ export default function TicketsPage() {
           {tickets.map((ticket) => (
             <Card
               key={ticket.id}
-              className="group cursor-pointer overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] hover:shadow-xl"
+              className="group cursor-pointer overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-gray-900/95 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] hover:shadow-xl"
               onClick={() => navigate(`/tickets/${ticket.id}`)}
             >
               <CardHeader className="space-y-4 pb-3">
                 <div className="flex items-start justify-between gap-3">
-                  <CardTitle className="line-clamp-2 text-lg font-semibold leading-snug text-slate-900">
+                  <CardTitle className="line-clamp-2 text-lg font-semibold leading-snug text-slate-900 dark:text-slate-100">
                     {ticket.title}
                   </CardTitle>
                   <Badge
                     variant={statusVariant[ticket.status] || 'secondary'}
-                    className="shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide"
+                    className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide ${statusDarkModeClass[ticket.status] ?? ''}`}
                   >
                     {ticket.status}
                   </Badge>
                 </div>
-                <p className="line-clamp-2 text-sm leading-relaxed text-slate-600">
+                <p className="line-clamp-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                   {ticket.description}
                 </p>
               </CardHeader>
               <CardContent className="space-y-4 pt-0">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Reporter</p>
-                    <div className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-800">
-                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-slate-700">
+                  <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">Reporter</p>
+                    <div className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-800 dark:text-slate-200">
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
                         <User className="h-3.5 w-3.5" />
                       </span>
                       <span className="truncate">{ticket.reporter?.name || 'N/A'}</span>
@@ -190,10 +195,10 @@ export default function TicketsPage() {
                   </div>
 
                   {isAdmin && (
-                    <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Assignee</p>
-                      <div className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-800">
-                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-slate-700">
+                    <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 p-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">Assignee</p>
+                      <div className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-800 dark:text-slate-200">
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
                           <UserCheck className="h-3.5 w-3.5" />
                         </span>
                         <span className="truncate">{ticket.assignedTo?.name || 'Unassigned'}</span>
@@ -203,13 +208,19 @@ export default function TicketsPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-xl border border-slate-100 px-3 py-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Category</p>
-                    <p className="mt-1 truncate text-sm font-medium text-slate-800">{ticket.category || 'N/A'}</p>
+                  <div className="rounded-xl border border-slate-100 dark:border-slate-800 px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">Category</p>
+                    <div className="mt-1 flex items-center gap-2 text-sm font-medium text-slate-800 dark:text-slate-200">
+                      <Tag className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                      <span className="truncate">{ticket.category || 'N/A'}</span>
+                    </div>
                   </div>
-                  <div className="rounded-xl border border-slate-100 px-3 py-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Priority</p>
-                    <p className="mt-1 truncate text-sm font-medium text-slate-800">{ticket.priority}</p>
+                  <div className="rounded-xl border border-slate-100 dark:border-slate-800 px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">Priority</p>
+                    <div className="mt-1 flex items-center gap-2 text-sm font-medium text-slate-800 dark:text-slate-200">
+                      <AlertTriangle className="h-4 w-4 text-amber-500" />
+                      <span className="truncate">{ticket.priority}</span>
+                    </div>
                   </div>
                 </div>
 

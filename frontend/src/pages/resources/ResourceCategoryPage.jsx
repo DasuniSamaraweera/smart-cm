@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/context/AuthContext'
 import ResourceFormDialog from './ResourceFormDialog'
+import FacilitiesAssistant from './FacilitiesAssistant'
 import { getResourceCategoryByKey } from './resourceCategoryConfig'
 
 function formatDateLabel(dateText) {
@@ -301,6 +302,23 @@ export default function ResourceCategoryPage() {
       .sort((a, b) => b.smartFitScore - a.smartFitScore)
     : resources
 
+  const applyAssistantFilters = (patch) => {
+    setSortMode('SMART_FIT')
+
+    if (Object.prototype.hasOwnProperty.call(patch, 'preferredName')) {
+      setPreferredName(patch.preferredName || '')
+    }
+    if (Object.prototype.hasOwnProperty.call(patch, 'preferredSubcategory')) {
+      setPreferredSubcategory(patch.preferredSubcategory || '')
+    }
+    if (Object.prototype.hasOwnProperty.call(patch, 'preferredLocation')) {
+      setPreferredLocation(patch.preferredLocation || '')
+    }
+    if (Object.prototype.hasOwnProperty.call(patch, 'desiredCapacity')) {
+      setDesiredCapacity(patch.desiredCapacity ? String(patch.desiredCapacity) : '')
+    }
+  }
+
   const deleteMutation = useMutation({
     mutationFn: (id) => resourceApi.delete(id),
     onSuccess: () => {
@@ -331,10 +349,10 @@ export default function ResourceCategoryPage() {
 
   if (!selectedCategory) {
     return (
-      <Card className="rounded-2xl border-slate-200 shadow-sm">
+      <Card className="rounded-2xl border-slate-200 dark:border-slate-700 shadow-sm">
         <CardContent className="p-6">
-          <h1 className="text-xl font-semibold text-slate-900">Category Not Found</h1>
-          <p className="mt-2 text-sm text-slate-600">The selected resource category does not exist.</p>
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Category Not Found</h1>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">The selected resource category does not exist.</p>
           <Button type="button" className="mt-4 rounded-xl" onClick={() => navigate('/resources')}>
             Back To Resource Types
           </Button>
@@ -348,8 +366,8 @@ export default function ResourceCategoryPage() {
       <div className="flex items-center justify-between rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-cyan-500/10 p-5 shadow-sm">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-500">Resource Catalogue</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">{selectedCategory.title}</h1>
-          <p className="mt-1 text-sm text-slate-600">Showing resources in this category.</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">{selectedCategory.title}</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Showing resources in this category.</p>
         </div>
         <div className="flex items-center gap-2">
           {isAdmin && (
@@ -361,19 +379,19 @@ export default function ResourceCategoryPage() {
               Add New Resource
             </Button>
           )}
-          <Button type="button" variant="outline" className="rounded-xl border-slate-300" onClick={() => navigate('/resources')}>
+          <Button type="button" variant="outline" className="rounded-xl border-slate-300 dark:border-slate-600" onClick={() => navigate('/resources')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
         </div>
       </div>
 
-      <Card className="rounded-2xl border-indigo-100 bg-white/90 shadow-sm">
+      <Card className="rounded-2xl border-indigo-100 bg-white dark:bg-gray-900/90 shadow-sm">
         <CardContent className="p-4">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Best Match Filter</p>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Best Match Filter</p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Select value={sortMode} onValueChange={setSortMode}>
-              <SelectTrigger className="rounded-xl border-slate-200 bg-slate-50">
+              <SelectTrigger className="rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                 <SelectValue placeholder="Sort mode" />
               </SelectTrigger>
               <SelectContent>
@@ -386,12 +404,12 @@ export default function ResourceCategoryPage() {
               value={preferredName}
               onChange={(e) => setPreferredName(e.target.value)}
               placeholder="Resource name"
-              className="rounded-xl border-slate-200 bg-slate-50"
+              className="rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
             />
 
             {matchProfile.useSubcategory && (
               <Select value={preferredSubcategory || 'ALL'} onValueChange={(v) => setPreferredSubcategory(v === 'ALL' ? '' : v)}>
-                <SelectTrigger className="rounded-xl border-slate-200 bg-slate-50">
+                <SelectTrigger className="rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -408,7 +426,7 @@ export default function ResourceCategoryPage() {
                 value={preferredLocation}
                 onChange={(e) => setPreferredLocation(e.target.value)}
                 placeholder="Preferred location"
-                className="rounded-xl border-slate-200 bg-slate-50"
+                className="rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             )}
 
@@ -419,7 +437,7 @@ export default function ResourceCategoryPage() {
                 value={desiredCapacity}
                 onChange={(e) => setDesiredCapacity(e.target.value)}
                 placeholder={matchProfile.capacityLabel}
-                className="rounded-xl border-slate-200 bg-slate-50"
+                className="rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             )}
 
@@ -428,7 +446,7 @@ export default function ResourceCategoryPage() {
                 type="date"
                 value={desiredDate}
                 onChange={(e) => setDesiredDate(e.target.value)}
-                className="rounded-xl border-slate-200 bg-slate-50"
+                className="rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             )}
 
@@ -437,7 +455,7 @@ export default function ResourceCategoryPage() {
                 type="time"
                 value={desiredStartTime}
                 onChange={(e) => setDesiredStartTime(e.target.value)}
-                className="rounded-xl border-slate-200 bg-slate-50"
+                className="rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             )}
 
@@ -446,7 +464,7 @@ export default function ResourceCategoryPage() {
                 type="time"
                 value={desiredEndTime}
                 onChange={(e) => setDesiredEndTime(e.target.value)}
-                className="rounded-xl border-slate-200 bg-slate-50"
+                className="rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             )}
           </div>
@@ -460,24 +478,24 @@ export default function ResourceCategoryPage() {
       </Card>
 
       {isLoading ? (
-        <Card className="rounded-2xl border-slate-200 shadow-sm">
-          <CardContent className="p-6 text-sm text-slate-600">Loading resources...</CardContent>
+        <Card className="rounded-2xl border-slate-200 dark:border-slate-700 shadow-sm">
+          <CardContent className="p-6 text-sm text-slate-600 dark:text-slate-400">Loading resources...</CardContent>
         </Card>
       ) : displayedResources.length === 0 ? (
-        <Card className="rounded-2xl border-slate-200 shadow-sm">
-          <CardContent className="p-6 text-sm text-slate-600">No resources found in this category yet.</CardContent>
+        <Card className="rounded-2xl border-slate-200 dark:border-slate-700 shadow-sm">
+          <CardContent className="p-6 text-sm text-slate-600 dark:text-slate-400">No resources found in this category yet.</CardContent>
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {displayedResources.map((resource, index) => {
             const isBestMatch = sortMode === 'SMART_FIT' && index === 0
             return (
-            <Card key={resource.id} className="rounded-2xl border-slate-200 shadow-sm">
+            <Card key={resource.id} className="rounded-2xl border-slate-200 dark:border-slate-700 shadow-sm">
               <CardContent className="space-y-3 p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-lg font-semibold text-slate-900">{resource.name}</h2>
-                    <p className="mt-1 text-sm text-slate-600">{resource.resourceSubcategory || 'No subcategory'}</p>
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{resource.name}</h2>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{resource.resourceSubcategory || 'No subcategory'}</p>
                     {sortMode === 'SMART_FIT' && (
                       <div className="mt-1 flex flex-wrap items-center gap-2">
                         {isBestMatch && (
@@ -520,31 +538,31 @@ export default function ResourceCategoryPage() {
                   </div>
                 </div>
 
-                <div className="space-y-1.5 text-sm text-slate-600">
+                <div className="space-y-1.5 text-sm text-slate-600 dark:text-slate-400">
                   <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-slate-500" />
+                    <MapPin className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                     <span>{resource.location || 'Location not set'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-slate-500" />
+                    <Users className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                     <span>Capacity: {resource.capacity ?? 'Not set'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4 text-slate-500" />
+                    <CalendarDays className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                     <span>{formatDateLabel(resource.availabilityDate)}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock3 className="h-4 w-4 text-slate-500" />
+                    <Clock3 className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                     <span>
                       {formatTimeLabel(resource.availabilityStart)} - {formatTimeLabel(resource.availabilityEnd)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-slate-500" />
+                    <User className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                     <span>{resource.contactPerson || 'Contact person not set'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-slate-500" />
+                    <Phone className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                     <span>{resource.contactNumber || 'Contact number not set'}</span>
                   </div>
                 </div>
@@ -553,7 +571,7 @@ export default function ResourceCategoryPage() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="w-full gap-2 rounded-xl border-slate-300"
+                  className="w-full gap-2 rounded-xl border-slate-300 dark:border-slate-600"
                   onClick={() => handleBookNow(resource)}
                   disabled={resource.status !== 'ACTIVE'}
                 >
@@ -566,6 +584,13 @@ export default function ResourceCategoryPage() {
           })}
         </div>
       )}
+
+      <FacilitiesAssistant
+        resources={resources}
+        onApplyFilters={applyAssistantFilters}
+        mode="category"
+        subcategoryOptions={availableSubcategories}
+      />
 
       <ResourceFormDialog
         open={dialogOpen}

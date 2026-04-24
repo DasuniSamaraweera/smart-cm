@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,7 @@ import {
 import { authApi, ticketApi } from '@/api/endpoints';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Mail, Phone } from 'lucide-react';
 import CommentSection from '@/components/tickets/CommentSection';
 
 const statusVariant = {
@@ -40,6 +40,14 @@ export default function TicketDetails() {
   const [attachmentUrls, setAttachmentUrls] = useState({});
   const [attachmentsLoading, setAttachmentsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const attachmentUrlsRef = useRef({});
+
+  const applyTicketState = (ticketData) => {
+    setTicket(ticketData);
+    setSelectedAssignee(ticketData.assignedTo?.id ? String(ticketData.assignedTo.id) : '');
+    setResolutionNotesInput(ticketData.resolutionNotes || '');
+    setRejectionReasonInput(ticketData.rejectionReason || '');
+  };
 
   useEffect(() => {
     fetchTicket();
@@ -53,10 +61,14 @@ export default function TicketDetails() {
 
   useEffect(() => {
     let isMounted = true;
-    const objectUrls = [];
+    const createdUrls = [];
 
     const loadAttachments = async () => {
-      if (!ticket?.id || !Array.isArray(ticket.attachments) || ticket.attachments.length === 0) {
+      const attachments = Array.isArray(ticket?.attachments) ? ticket.attachments : [];
+
+      if (!ticket?.id || attachments.length === 0) {
+        Object.values(attachmentUrlsRef.current).forEach((url) => URL.revokeObjectURL(url));
+        attachmentUrlsRef.current = {};
         setAttachmentUrls({});
         setAttachmentsLoading(false);
         return;
@@ -65,7 +77,12 @@ export default function TicketDetails() {
       try {
         setAttachmentsLoading(true);
         const entries = await Promise.all(
-          ticket.attachments.map(async (attachment) => {
+          attachments.map(async (attachment) => {
+            const cachedUrl = attachmentUrlsRef.current[attachment.id];
+            if (cachedUrl) {
+              return [attachment.id, cachedUrl];
+            }
+
             const res = await ticketApi.getAttachment(ticket.id, attachment.id);
             const blob =
               res.data instanceof Blob
@@ -74,17 +91,28 @@ export default function TicketDetails() {
                     type: attachment.fileType || 'application/octet-stream',
                   });
             const url = URL.createObjectURL(blob);
-            objectUrls.push(url);
+            createdUrls.push(url);
             return [attachment.id, url];
           })
         );
 
         if (isMounted) {
-          setAttachmentUrls(Object.fromEntries(entries));
+          const nextUrls = Object.fromEntries(entries);
+          Object.entries(attachmentUrlsRef.current).forEach(([attachmentId, url]) => {
+            if (!nextUrls[attachmentId]) {
+              URL.revokeObjectURL(url);
+            }
+          });
+          attachmentUrlsRef.current = nextUrls;
+          setAttachmentUrls(nextUrls);
+        } else {
+          createdUrls.forEach((url) => URL.revokeObjectURL(url));
         }
       } catch (err) {
+        createdUrls.forEach((url) => URL.revokeObjectURL(url));
         console.error('Failed to load attachments', err);
         if (isMounted) {
+          attachmentUrlsRef.current = {};
           setAttachmentUrls({});
           toast.error(err.response?.data?.message || 'Unable to load ticket attachments');
         }
@@ -99,17 +127,19 @@ export default function TicketDetails() {
 
     return () => {
       isMounted = false;
-      objectUrls.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [ticket?.id, ticket?.updatedAt, ticket?.attachments]);
+  }, [ticket?.id, ticket?.attachments]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(attachmentUrlsRef.current).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   const fetchTicket = async () => {
     try {
       const res = await ticketApi.getById(id);
-      setTicket(res.data);
-      setSelectedAssignee(res.data.assignedTo?.id ? String(res.data.assignedTo.id) : '');
-      setResolutionNotesInput(res.data.resolutionNotes || '');
-      setRejectionReasonInput(res.data.rejectionReason || '');
+      applyTicketState(res.data);
     } catch (err) {
       console.error("Failed to load ticket", err);
     } finally {
@@ -120,8 +150,8 @@ export default function TicketDetails() {
   const fetchAssignees = async () => {
     try {
       setAssigneeLoadError('');
-      const res = await authApi.getUsers();
-      setAssignees(res.data.filter((u) => u.role === 'TECHNICIAN'));
+      const res = await authApi.getTechnicians();
+      setAssignees(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error('Failed to load assignees', err);
       setAssignees([]);
@@ -137,9 +167,9 @@ export default function TicketDetails() {
 
     try {
       setAssigning(true);
-      await ticketApi.assign(ticket.id, { assigneeId: Number(selectedAssignee) });
+      const res = await ticketApi.assign(ticket.id, { assigneeId: Number(selectedAssignee) });
+      applyTicketState(res.data);
       toast.success('Ticket assigned successfully');
-      await fetchTicket();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to assign ticket');
     } finally {
@@ -165,9 +195,9 @@ export default function TicketDetails() {
 
     try {
       setStatusUpdating(true);
-      await ticketApi.updateStatus(ticket.id, payload);
+      const res = await ticketApi.updateStatus(ticket.id, payload);
+      applyTicketState(res.data);
       toast.success(`Ticket marked as ${nextStatus.replace('_', ' ')}`);
-      await fetchTicket();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update status');
     } finally {
@@ -184,6 +214,75 @@ export default function TicketDetails() {
   const canClose = isAdmin && ticket.status === 'RESOLVED';
   const canResolve = isAssignedTechnician && ticket.status === 'IN_PROGRESS';
   const canAssign = isAdmin && ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED';
+
+  const formatActivityTimestamp = (timestamp) => {
+    if (!timestamp) {
+      return 'Time unavailable';
+    }
+
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) {
+      return 'Time unavailable';
+    }
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const dayDiff = Math.round((startOfToday - startOfDate) / (1000 * 60 * 60 * 24));
+    const timePart = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+    if (dayDiff === 0) {
+      return `Today, ${timePart}`;
+    }
+
+    if (dayDiff === 1) {
+      return `Yesterday, ${timePart}`;
+    }
+
+    const datePart = date.toLocaleDateString([], {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+    return `${datePart}, ${timePart}`;
+  };
+
+  const currentStatusLabel = ticket.status ? ticket.status.replace(/_/g, ' ') : '';
+  const statusEventText = {
+    RESOLVED: 'Ticket resolved',
+    CLOSED: 'Ticket closed',
+    REJECTED: 'Ticket rejected',
+  }[ticket.status] || `Status updated to ${currentStatusLabel}`;
+
+  const activityEvents = [
+    {
+      key: `status-${ticket.status}-${ticket.updatedAt || ''}`,
+      text: statusEventText,
+      timestamp: ticket.updatedAt || ticket.createdAt,
+    },
+    ticket.assignedTo
+      ? {
+          key: `assigned-${ticket.assignedTo.id}-${ticket.updatedAt || ''}`,
+          text: `Ticket assigned to ${ticket.assignedTo.name}`,
+          timestamp: ticket.updatedAt || ticket.createdAt,
+        }
+      : null,
+    {
+      key: `created-${ticket.id}-${ticket.createdAt || ''}`,
+      text: `Ticket created by ${ticket.reporter?.name || 'Reporter'}`,
+      timestamp: ticket.createdAt,
+    },
+  ]
+    .filter(Boolean)
+    .map((event) => {
+      const eventDate = new Date(event.timestamp);
+      return {
+        ...event,
+        eventDate,
+      };
+    })
+    .filter((event) => !Number.isNaN(event.eventDate.getTime()))
+    .sort((a, b) => b.eventDate.getTime() - a.eventDate.getTime());
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -332,77 +431,117 @@ export default function TicketDetails() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Workflow Actions</CardTitle>
+          <Card className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold text-slate-800 dark:text-slate-200">Activity Log</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {canResolve && (
-                <>
-                  <Textarea
-                    placeholder="Add optional resolution notes"
-                    value={resolutionNotesInput}
-                    onChange={(e) => setResolutionNotesInput(e.target.value)}
-                  />
+            <CardContent className="space-y-4">
+              {activityEvents.length > 0 ? (
+                <div className="relative border-l-2 border-slate-200 dark:border-slate-700 pl-4">
+                  {activityEvents.map((event, index) => (
+                    <div
+                      key={event.key}
+                      className={`relative ${index === activityEvents.length - 1 ? 'pb-0' : 'pb-5'}`}
+                    >
+                      <span
+                        className={`absolute -left-[22px] top-1 h-3 w-3 rounded-full ring-4 ring-white ${
+                          index === 0 ? 'bg-emerald-500' : 'bg-slate-300'
+                        }`}
+                      />
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{event.text}</p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{formatActivityTimestamp(event.timestamp)}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">No activity available</p>
+              )}
+
+              <div className="space-y-3 border-t border-slate-200 dark:border-slate-700 pt-3">
+                {canResolve && (
+                  <>
+                    <Textarea
+                      placeholder="Add optional resolution notes"
+                      value={resolutionNotesInput}
+                      onChange={(e) => setResolutionNotesInput(e.target.value)}
+                    />
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={() => handleStatusUpdate('RESOLVED')}
+                      disabled={statusUpdating}
+                    >
+                      {statusUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Mark as Resolved
+                    </Button>
+                  </>
+                )}
+
+                {canClose && (
                   <Button
                     size="sm"
                     className="w-full"
-                    onClick={() => handleStatusUpdate('RESOLVED')}
+                    onClick={() => handleStatusUpdate('CLOSED')}
                     disabled={statusUpdating}
                   >
                     {statusUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Mark as Resolved
+                    Close Ticket
                   </Button>
-                </>
-              )}
+                )}
 
-              {canClose && (
-                <Button
-                  size="sm"
-                  className="w-full"
-                  onClick={() => handleStatusUpdate('CLOSED')}
-                  disabled={statusUpdating}
-                >
-                  {statusUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Close Ticket
-                </Button>
-              )}
+                {canReject && (
+                  <>
+                    <Textarea
+                      placeholder="Rejection reason (required)"
+                      value={rejectionReasonInput}
+                      onChange={(e) => setRejectionReasonInput(e.target.value)}
+                    />
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="w-full"
+                      onClick={() => handleStatusUpdate('REJECTED')}
+                      disabled={statusUpdating}
+                    >
+                      {statusUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Reject Ticket
+                    </Button>
+                  </>
+                )}
 
-              {canReject && (
-                <>
-                  <Textarea
-                    placeholder="Rejection reason (required)"
-                    value={rejectionReasonInput}
-                    onChange={(e) => setRejectionReasonInput(e.target.value)}
-                  />
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="w-full"
-                    onClick={() => handleStatusUpdate('REJECTED')}
-                    disabled={statusUpdating}
-                  >
-                    {statusUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Reject Ticket
-                  </Button>
-                </>
-              )}
-
-              {!canResolve && !canClose && !canReject && (
-                <p className="text-xs text-muted-foreground">
-                  No status actions are available for your role on this ticket.
-                </p>
-              )}
+                {!canResolve && !canClose && !canReject && (
+                  <p className="text-xs text-muted-foreground">
+                    No status actions are available for your role on this ticket.
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Contact Info</CardTitle>
+          <Card className="rounded-xl border-blue-200 bg-blue-50/80 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-bold text-blue-700">Contact Info</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <div><span className="text-muted-foreground">Email:</span> {ticket.contactEmail || 'N/A'}</div>
-              <div><span className="text-muted-foreground">Phone:</span> {ticket.contactPhone || 'N/A'}</div>
+            <CardContent className="space-y-3">
+              <div className="flex items-start gap-3 rounded-xl bg-white dark:bg-gray-900/70 p-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                  <Mail className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Email Address</p>
+                  <p className="break-all text-sm font-bold text-blue-900">{ticket.contactEmail || 'N/A'}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-xl bg-white dark:bg-gray-900/70 p-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                  <Phone className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Phone Number</p>
+                  <p className="text-sm font-bold text-blue-900">{ticket.contactPhone || 'N/A'}</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

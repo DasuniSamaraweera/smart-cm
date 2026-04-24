@@ -146,17 +146,7 @@ public class TicketService {
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
         assertCanView(ticket);
 
-        List<AttachmentResponse> attachmentResponses = ticketAttachmentRepository.findMetadataByTicketId(ticketId)
-            .stream()
-            .map(this::mapAttachmentMetadataToResponse)
-            .collect(Collectors.toList());
-
-        List<CommentResponse> commentResponses = commentRepository.findByTicketIdOrderByCreatedAtAsc(ticketId)
-            .stream()
-            .map(this::mapCommentToResponse)
-            .collect(Collectors.toList());
-
-        return mapToDetailResponse(ticket, attachmentResponses, commentResponses);
+        return buildDetailResponse(ticket);
     }
 
     @Transactional
@@ -203,6 +193,7 @@ public class TicketService {
         }
         
         return mapToResponse(saved);
+        return buildDetailResponse(saved);
     }
 
     @Transactional
@@ -249,6 +240,7 @@ public class TicketService {
         );
         
         return mapToResponse(saved);
+        return buildDetailResponse(saved);
     }
 
     @Transactional
@@ -607,6 +599,21 @@ public class TicketService {
         if (isGif(data)) return "image/gif";
         if (isWebp(data)) return "image/webp";
         return null;
+    }
+
+    private TicketResponse buildDetailResponse(Ticket ticket) {
+        Long ticketId = ticket.getId();
+        List<AttachmentResponse> attachmentResponses = ticketAttachmentRepository.findMetadataByTicketId(ticketId)
+                .stream()
+                .map(this::mapAttachmentMetadataToResponse)
+                .collect(Collectors.toList());
+
+        List<CommentResponse> commentResponses = commentRepository.findByTicketIdOrderByCreatedAtAsc(ticketId)
+                .stream()
+                .map(this::mapCommentToResponse)
+                .collect(Collectors.toList());
+
+        return mapToDetailResponse(ticket, attachmentResponses, commentResponses);
     }
 
     private boolean isJpeg(byte[] data) {

@@ -1,4 +1,4 @@
-import { Building2, CalendarCheck, TicketCheck, TrendingUp } from 'lucide-react'
+import { Building2, CalendarCheck, ChevronRight, TicketCheck, TrendingUp } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,21 +12,26 @@ const TICKET_PAGE_SIZE = 100
 const statusVariant = {
   OPEN: 'default',
   IN_PROGRESS: 'warning',
-  RESOLVED: 'secondary',
+  RESOLVED: 'success',
   CLOSED: 'outline',
   REJECTED: 'destructive',
+}
+
+const statusDarkModeClass = {
+  OPEN: 'dark:bg-blue-900 dark:text-blue-300',
+  CLOSED: 'dark:bg-slate-700 dark:text-slate-300',
 }
 
 const BOOKING_STATUS_STYLES = {
   PENDING:  'bg-amber-100 text-amber-800',
   APPROVED: 'bg-green-100 text-green-800',
   REJECTED: 'bg-red-100 text-red-800',
-  CANCELLED:'bg-gray-100 text-gray-600',
+  CANCELLED:'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300',
 }
 
 function BookingStatusBadge({ status }) {
   return (
-    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${BOOKING_STATUS_STYLES[status] ?? 'bg-gray-100 text-gray-600'}`}>
+    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${BOOKING_STATUS_STYLES[status] ?? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>
       {status}
     </span>
   )
@@ -95,51 +100,6 @@ export default function DashboardPage() {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5)
 
-  const resourceUsage = bookings.reduce((acc, booking) => {
-    const resourceId = booking?.resource?.id
-    const resourceName = booking?.resource?.name
-    if (!resourceId || !resourceName) return acc
-    const start = booking?.startTime ? new Date(booking.startTime) : null
-    const end = booking?.endTime ? new Date(booking.endTime) : null
-    const durationHours = start && end && end > start
-      ? (end.getTime() - start.getTime()) / (1000 * 60 * 60)
-      : 0
-    if (!acc[resourceId]) {
-      acc[resourceId] = { resourceId, resourceName, bookingsCount: 0, totalHours: 0 }
-    }
-    acc[resourceId].bookingsCount += 1
-    acc[resourceId].totalHours += durationHours
-    return acc
-  }, {})
-
-  const topResources = Object.values(resourceUsage)
-    .sort((a, b) => {
-      if (b.bookingsCount !== a.bookingsCount) return b.bookingsCount - a.bookingsCount
-      return b.totalHours - a.totalHours
-    })
-    .slice(0, 5)
-
-  const peakUsageCount = topResources[0]?.bookingsCount || 1
-  const pieColors = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4']
-  const totalUsageBookings = topResources.reduce((sum, item) => sum + item.bookingsCount, 0)
-  const pieSegments = topResources.map((item, index) => ({
-    ...item,
-    color: pieColors[index % pieColors.length],
-    ratio: totalUsageBookings > 0 ? item.bookingsCount / totalUsageBookings : 0,
-  }))
-
-  let accumulated = 0
-  const pieGradient = pieSegments.length === 0
-    ? '#e2e8f0 0 100%'
-    : pieSegments
-        .map((segment) => {
-          const start = accumulated * 360
-          accumulated += segment.ratio
-          const end = accumulated * 360
-          return `${segment.color} ${start}deg ${end}deg`
-        })
-        .join(', ')
-
   const stats = [
     { title: 'Total Resources',  value: totalResources,  icon: Building2,  color: 'text-blue-600',    bg: 'bg-blue-100' },
     { title: 'Active Resources', value: activeResources, icon: CalendarCheck, color: 'text-emerald-600', bg: 'bg-emerald-100' },
@@ -152,21 +112,21 @@ export default function DashboardPage() {
       {/* Welcome */}
       <div className="rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-cyan-500/10 p-5 shadow-sm">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-500">Operations Snapshot</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
           Welcome back, {user?.name?.split(' ')[0] || 'User'} 👋
         </h1>
-        <p className="mt-1 text-sm text-slate-600">Here's an overview of the campus operations today.</p>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Here's an overview of the campus operations today.</p>
       </div>
 
       {/* Stats grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.title} className="rounded-2xl border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <Card key={stat.title} className="rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">{stat.title}</p>
-                  <p className="mt-1 text-3xl font-bold text-slate-900">{stat.value}</p>
+                  <p className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">{stat.title}</p>
+                  <p className="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">{stat.value}</p>
                 </div>
                 <div className={`flex h-12 w-12 items-center justify-center rounded-xl ring-1 ring-black/5 ${stat.bg}`}>
                   <stat.icon className={`h-6 w-6 ${stat.color}`} />
@@ -180,15 +140,15 @@ export default function DashboardPage() {
       {/* Recent activity */}
       <div className="grid gap-4 md:grid-cols-2">
         {/* Recent Bookings */}
-        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
+        <Card className="rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg text-slate-900">Recent Bookings</CardTitle>
+            <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Recent Bookings</CardTitle>
           </CardHeader>
           <CardContent>
             {bookingsLoading ? (
-              <p className="text-sm text-slate-600">Loading bookings...</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Loading bookings...</p>
             ) : recentBookings.length === 0 ? (
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
                 No bookings yet.{' '}
                 <Link to="/bookings" className="underline hover:text-foreground">
                   Create your first booking
@@ -197,10 +157,10 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-3">
                 {recentBookings.map((booking) => (
-                  <div key={booking.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                  <div key={booking.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 p-3">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-slate-900">{booking.resource?.name}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{booking.resource?.name}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {new Date(booking.startTime).toLocaleDateString('en-GB', {
                           day: '2-digit', month: 'short', year: 'numeric',
                         })}
@@ -217,28 +177,49 @@ export default function DashboardPage() {
         </Card>
 
         {/* Recent Tickets */}
-        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
+        <Card className="rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg text-slate-900">Recent Tickets</CardTitle>
+            <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Recent Tickets</CardTitle>
           </CardHeader>
           <CardContent>
             {ticketsLoading ? (
-              <p className="text-sm text-slate-600">Loading tickets...</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Loading tickets...</p>
             ) : recentTickets.length === 0 ? (
-              <p className="text-sm text-slate-600">No tickets yet. Report an issue from the Tickets page.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">No tickets yet. Report an issue from the Tickets page.</p>
             ) : (
               <div className="space-y-3">
                 {recentTickets.map((ticket) => (
-                  <div key={ticket.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-                    <div className="min-w-0">
-                      <Link to={`/tickets/${ticket.id}`} className="block truncate text-sm font-medium text-slate-900 hover:underline">
-                        {ticket.title}
-                      </Link>
-                      <p className="text-xs text-slate-500">
-                        #{ticket.id} • {new Date(ticket.createdAt).toLocaleDateString()}
-                      </p>
+                  <div
+                    key={ticket.id}
+                    className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 px-4 py-3 transition-all hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:shadow-sm"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700/80 text-slate-500 dark:text-slate-400">
+                        <TicketCheck className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <Link
+                          to={`/tickets/${ticket.id}`}
+                          className="block truncate text-sm font-semibold text-slate-900 dark:text-slate-100 hover:underline"
+                        >
+                          {ticket.title}
+                        </Link>
+                        <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+                          <span>{ticket.id}</span>
+                          <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
+                          <span>{ticket.reporter?.name || 'N/A'}</span>
+                        </div>
+                      </div>
                     </div>
-                    <Badge variant={statusVariant[ticket.status] || 'secondary'}>{ticket.status}</Badge>
+                    <div className="flex shrink-0 items-center gap-3">
+                      <Badge
+                        variant={statusVariant[ticket.status] || 'secondary'}
+                        className={statusDarkModeClass[ticket.status] ?? ''}
+                      >
+                        {ticket.status}
+                      </Badge>
+                      <ChevronRight className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -246,65 +227,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Admin: Usage Analytics */}
-      {user?.role === 'ADMIN' && (
-        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg text-slate-900">Usage Analytics (Top Resources)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {bookingsLoading ? (
-              <p className="text-sm text-slate-600">Loading usage analytics...</p>
-            ) : topResources.length === 0 ? (
-              <p className="text-sm text-slate-600">No booking usage data available yet.</p>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-[260px_1fr]">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <div
-                    className="mx-auto flex h-44 w-44 items-center justify-center rounded-full"
-                    style={{ background: `conic-gradient(${pieGradient})` }}
-                  >
-                    <div className="flex h-24 w-24 flex-col items-center justify-center rounded-full bg-white shadow-sm">
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-slate-500">Total</p>
-                      <p className="text-xl font-bold text-slate-900">{totalUsageBookings}</p>
-                    </div>
-                  </div>
-                  <div className="mt-4 space-y-2">
-                    {pieSegments.map((item) => (
-                      <div key={`legend-${item.resourceId}`} className="flex items-center justify-between gap-2 text-xs">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                          <span className="truncate text-slate-700">{item.resourceName}</span>
-                        </div>
-                        <span className="font-medium text-slate-800">{Math.round(item.ratio * 100)}%</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  {topResources.map((item, index) => {
-                    const usagePercent = Math.round((item.bookingsCount / peakUsageCount) * 100)
-                    return (
-                      <div key={item.resourceId} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="text-sm font-medium text-slate-900">{index + 1}. {item.resourceName}</p>
-                          <p className="text-xs text-slate-600">
-                            {item.bookingsCount} booking{item.bookingsCount > 1 ? 's' : ''} • {item.totalHours.toFixed(1)}h
-                          </p>
-                        </div>
-                        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200">
-                          <div className="h-full rounded-full bg-indigo-500" style={{ width: `${usagePercent}%` }} />
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       {user?.role === 'ADMIN' && (
         <ResourceAvailabilityCalendar
