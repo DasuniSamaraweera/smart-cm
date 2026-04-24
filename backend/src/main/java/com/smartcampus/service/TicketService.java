@@ -178,7 +178,21 @@ public class TicketService {
                 saved.getId()
             );
         }
-        return buildDetailResponse(saved);
+        
+        // Notify all admins when a technician resolves a ticket
+        if (statusUpdate.getStatus() == TicketStatus.RESOLVED && user.getRole() == UserRole.TECHNICIAN) {
+            List<User> admins = userRepository.findByRole(UserRole.ADMIN);
+            for (User admin : admins) {
+                notificationService.createNotification(
+                    admin,
+                    "Ticket \"" + ticket.getTitle() + "\" has been resolved by " + user.getName(),
+                    NotificationType.TICKET_STATUS_CHANGED,
+                    saved.getId()
+                );
+            }
+        }
+        
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -215,8 +229,17 @@ public class TicketService {
                 saved.getId()
             );
         }
-        return buildDetailResponse(saved);
-    }
+        
+        // Notify the assigned technician
+        notificationService.createNotification(
+            assignee,
+            "You have been assigned to ticket: \"" + ticket.getTitle() + "\"",
+            NotificationType.TICKET_ASSIGNED,
+            saved.getId()
+        );
+        
+        return mapToResponse(saved);
+        }
 
     @Transactional
     public CommentResponse addComment(Long ticketId, CommentRequest request) {
