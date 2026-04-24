@@ -29,7 +29,7 @@ import {
 
 const roleBadge = {
   ADMIN:      { variant: 'destructive', label: 'Admin',      color: 'bg-red-100 text-red-700 border-red-200' },
-  USER:       { variant: 'secondary',   label: 'User',       color: 'bg-slate-100 text-slate-700 border-slate-200' },
+  USER:       { variant: 'secondary',   label: 'User',       color: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700' },
   TECHNICIAN: { variant: 'warning',     label: 'Technician', color: 'bg-amber-100 text-amber-700 border-amber-200' },
   ADMIN: { variant: 'destructive', label: 'Admin' },
   USER: { variant: 'secondary', label: 'User' },
@@ -122,10 +122,10 @@ export default function UserManagementPage() {
           </div>
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-500">Administration</p>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">User Management</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">User Management</h1>
           </div>
         </div>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
           View registered users, manage roles and permissions.
         </p>
       </div>
@@ -138,14 +138,14 @@ export default function UserManagementPage() {
           { label: 'Regular Users', value: userCount,         icon: Shield,     bg: 'bg-emerald-100', ring: 'ring-emerald-200/60', iconColor: 'text-emerald-600' },
           { label: 'Technicians',  value: technicianCount,    icon: UserCog,    bg: 'bg-amber-100',   ring: 'ring-amber-200/60',   iconColor: 'text-amber-600' },
         ].map(({ label, value, icon: Icon, bg, ring, iconColor }) => (
-          <Card key={label} className="rounded-2xl border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+          <Card key={label} className="rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
             <CardContent className="flex items-center gap-3 p-4">
               <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${bg} ring-1 ${ring}`}>
                 <Icon className={`h-5 w-5 ${iconColor}`} />
               </div>
               <div>
-                <p className="text-2xl font-bold text-slate-900">{value}</p>
-                <p className="text-xs uppercase tracking-[0.1em] text-slate-500">{label}</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{value}</p>
+                <p className="text-xs uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">{label}</p>
               </div>
             </CardContent>
           </Card>
@@ -155,12 +155,12 @@ export default function UserManagementPage() {
       {/* Search + Filter */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
           <Input
             placeholder="Search by name or email..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-9 rounded-xl border-slate-200 bg-slate-50"
+            className="pl-9 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
           />
         </div>
         <div className="flex gap-2">
@@ -179,11 +179,11 @@ export default function UserManagementPage() {
       </div>
 
       {/* User List */}
-      <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
-        <CardHeader className="border-b border-slate-100 pb-3">
-          <CardTitle className="text-base text-slate-900">
+      <Card className="rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm">
+        <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-3">
+          <CardTitle className="text-base text-slate-900 dark:text-slate-100">
             All Users
-            <span className="ml-2 text-sm font-normal text-slate-400">
+            <span className="ml-2 text-sm font-normal text-slate-400 dark:text-slate-500">
               ({filteredUsers.length} of {users.length})
             </span>
           </CardTitle>
@@ -192,7 +192,7 @@ export default function UserManagementPage() {
           {isLoading ? (
             <div className="p-6 space-y-4">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-14 animate-pulse rounded-xl bg-slate-100" />
+                <div key={i} className="h-14 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
               ))}
             </div>
           ) : filteredUsers.length === 0 ? (
@@ -211,7 +211,7 @@ export default function UserManagementPage() {
                 return (
                   <div
                     key={user.id}
-                    className="group flex items-center justify-between px-6 py-4 transition-colors hover:bg-slate-50"
+                    className="group flex items-center justify-between px-6 py-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
                   >
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10 ring-2 ring-slate-100">
@@ -222,14 +222,14 @@ export default function UserManagementPage() {
                       </Avatar>
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-slate-900">{user.name}</p>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{user.name}</p>
                           {isSelf && (
                             <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-indigo-200 text-indigo-600">
                               You
                             </Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
+                        <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                           <Mail className="h-3 w-3" />
                           {user.email}
                         </div>
@@ -246,7 +246,7 @@ export default function UserManagementPage() {
                           value={user.role}
                           onValueChange={(val) => handleRoleQuickChange(user.id, val)}
                         >
-                          <SelectTrigger className="h-8 w-[140px] rounded-xl border-slate-200 bg-slate-50 text-xs">
+                          <SelectTrigger className="h-8 w-[140px] rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -298,38 +298,38 @@ export default function UserManagementPage() {
         <DialogContent className="sm:max-w-[440px] rounded-2xl border-indigo-100 bg-gradient-to-b from-indigo-50/60 to-white">
           <DialogHeader>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-500">User Profile</p>
-            <DialogTitle className="text-slate-900">Edit User</DialogTitle>
-            <DialogDescription className="text-slate-600">Update user details and role.</DialogDescription>
+            <DialogTitle className="text-slate-900 dark:text-slate-100">Edit User</DialogTitle>
+            <DialogDescription className="text-slate-600 dark:text-slate-400">Update user details and role.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleEditSubmit} className="space-y-4 rounded-xl border border-indigo-100 bg-white p-4 shadow-sm">
+          <form onSubmit={handleEditSubmit} className="space-y-4 rounded-xl border border-indigo-100 bg-white dark:bg-gray-900 p-4 shadow-sm">
             <div>
-              <Label htmlFor="edit-name" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Name</Label>
+              <Label htmlFor="edit-name" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Name</Label>
               <Input
                 id="edit-name"
                 value={editForm.name}
                 onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
-                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
+                className="mt-1.5 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
                 required
               />
             </div>
             <div>
-              <Label htmlFor="edit-email" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Email</Label>
+              <Label htmlFor="edit-email" className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Email</Label>
               <Input
                 id="edit-email"
                 type="email"
                 value={editForm.email}
                 onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
-                className="mt-1.5 rounded-xl border-slate-200 bg-slate-50"
+                className="mt-1.5 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
                 required
               />
             </div>
             <div>
-              <Label className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500">Role</Label>
+              <Label className="text-xs font-medium uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Role</Label>
               <Select
                 value={editForm.role}
                 onValueChange={(val) => setEditForm((f) => ({ ...f, role: val }))}
               >
-                <SelectTrigger className="mt-1.5 rounded-xl border-slate-200 bg-slate-50">
+                <SelectTrigger className="mt-1.5 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -341,7 +341,7 @@ export default function UserManagementPage() {
               </Select>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" className="rounded-xl border-slate-300" onClick={() => setEditDialog(false)}>
+              <Button type="button" variant="outline" className="rounded-xl border-slate-300 dark:border-slate-600" onClick={() => setEditDialog(false)}>
                 Cancel
               </Button>
               <Button type="submit" className="rounded-xl bg-indigo-600 text-white hover:bg-indigo-700" disabled={updateMutation.isPending}>

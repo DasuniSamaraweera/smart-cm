@@ -28,12 +28,12 @@ const STATUS_STYLES = {
   PENDING:   'bg-amber-100 text-amber-800',
   APPROVED:  'bg-green-100 text-green-800',
   REJECTED:  'bg-red-100 text-red-800',
-  CANCELLED: 'bg-gray-100 text-gray-600',
+  CANCELLED: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300',
 }
 
 function StatusBadge({ status }) {
   return (
-    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_STYLES[status] ?? 'bg-gray-100 text-gray-600'}`}>
+    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_STYLES[status] ?? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>
       {status}
     </span>
   )
@@ -71,7 +71,7 @@ function TabButton({ label, count, active, onClick }) {
       onClick={onClick}
       className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
         active
-          ? 'bg-white shadow-sm border text-foreground'
+          ? 'bg-white dark:bg-gray-900 shadow-sm border text-foreground'
           : 'text-muted-foreground hover:text-foreground'
       }`}
     >
@@ -126,7 +126,7 @@ function BookingAnalytics({ bookings }) {
 
   const rankColors = [
     'bg-yellow-100 text-yellow-700',
-    'bg-slate-100 text-slate-600',
+    'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
     'bg-orange-100 text-orange-600',
     'bg-muted text-muted-foreground',
     'bg-muted text-muted-foreground',
@@ -145,7 +145,7 @@ function BookingAnalytics({ bookings }) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {/* Top Resources */}
-      <Card className="rounded-2xl border-slate-200 shadow-sm">
+      <Card className="rounded-2xl border-slate-200 dark:border-slate-700 shadow-sm">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-100">
@@ -173,7 +173,7 @@ function BookingAnalytics({ bookings }) {
                     {count} booking{count > 1 ? 's' : ''}
                   </span>
                 </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-400 transition-all"
                     style={{ width: `${pct}%` }}
@@ -186,7 +186,7 @@ function BookingAnalytics({ bookings }) {
       </Card>
 
       {/* Peak Hours */}
-      <Card className="rounded-2xl border-slate-200 shadow-sm">
+      <Card className="rounded-2xl border-slate-200 dark:border-slate-700 shadow-sm">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
@@ -213,7 +213,7 @@ function BookingAnalytics({ bookings }) {
                     {count} booking{count > 1 ? 's' : ''}
                   </span>
                 </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all ${
                       isTopHour

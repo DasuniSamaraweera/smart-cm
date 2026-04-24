@@ -147,19 +147,19 @@ export default function TechnicianTicketAnalysisPage() {
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-500">
           Technician Workspace
         </p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">Ticket Analysis</h1>
-        <p className="mt-1 text-sm font-medium text-slate-600">
+        <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Ticket Analysis</h1>
+        <p className="mt-1 text-sm font-medium text-slate-600 dark:text-slate-400">
           Distribution of tickets currently assigned to you.
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg xl:col-span-2">
+        <Card className="rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg xl:col-span-2">
           <CardContent className="p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Total Assigned Tickets</p>
-                <p className="mt-1 text-3xl font-bold text-slate-900">{isLoading ? '...' : assignedTickets.length}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Total Assigned Tickets</p>
+                <p className="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">{isLoading ? '...' : assignedTickets.length}</p>
               </div>
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-100 ring-1 ring-black/5">
                 <Wrench className="h-5 w-5 text-indigo-600" />
@@ -168,12 +168,12 @@ export default function TechnicianTicketAnalysisPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <Card className="rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
           <CardContent className="p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">In Progress</p>
-                <p className="mt-1 text-3xl font-bold text-slate-900">{isLoading ? '...' : inProgressCount}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">In Progress</p>
+                <p className="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">{isLoading ? '...' : inProgressCount}</p>
               </div>
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 ring-1 ring-black/5">
                 <Loader2 className={isFetching ? 'h-5 w-5 animate-spin text-amber-600' : 'h-5 w-5 text-amber-600'} />
@@ -182,12 +182,12 @@ export default function TechnicianTicketAnalysisPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <Card className="rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
           <CardContent className="p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Resolved</p>
-                <p className="mt-1 text-3xl font-bold text-slate-900">{isLoading ? '...' : resolvedCount}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Resolved</p>
+                <p className="mt-1 text-3xl font-bold text-slate-900 dark:text-slate-100">{isLoading ? '...' : resolvedCount}</p>
               </div>
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-100 ring-1 ring-black/5">
                 <BarChart3 className="h-5 w-5 text-sky-600" />
@@ -207,13 +207,13 @@ export default function TechnicianTicketAnalysisPage() {
           </CardContent>
         </Card>
       ) : hasNoData ? (
-        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
+        <Card className="rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm">
           <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 ring-1 ring-slate-200">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 ring-1 ring-slate-200">
               <PieChart className="h-7 w-7" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900">No Data Available</h3>
-            <p className="max-w-md text-sm font-medium text-slate-500">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">No Data Available</h3>
+            <p className="max-w-md text-sm font-medium text-slate-500 dark:text-slate-400">
               No assigned tickets available for analysis right now.
             </p>
           </CardContent>
@@ -221,9 +221,9 @@ export default function TechnicianTicketAnalysisPage() {
       ) : isLoading ? (
         <div className="grid gap-4 md:grid-cols-2">
           {[...Array(2)].map((_, index) => (
-            <Card key={index} className="rounded-2xl border-slate-200 bg-white shadow-sm">
+            <Card key={index} className="rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 shadow-sm">
               <CardContent className="p-6">
-                <div className="h-56 animate-pulse rounded-xl bg-slate-100" />
+                <div className="h-56 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
               </CardContent>
             </Card>
           ))}
