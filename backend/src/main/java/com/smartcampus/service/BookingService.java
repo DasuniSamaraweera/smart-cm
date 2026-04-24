@@ -96,11 +96,33 @@ public class BookingService {
         
 
         // Conflict check – uses the custom JPQL query in BookingRepository
-        List<Booking> conflicts = bookingRepository.findConflictingBookings(
-                resource.getId(), request.getStartTime(), request.getEndTime());
-        if (!conflicts.isEmpty()) {
-            throw new BadRequestException(
-                    "Time slot conflicts with an existing approved booking for this resource");
+        // ── Conflict / capacity check ─────────────────────────────────────────
+        if (resource.getType() == com.smartcampus.model.enums.ResourceType.EQUIPMENT) {
+            // For equipment: allow multiple bookings up to total capacity
+            int requested = (request.getExpectedAttendees() != null)
+                    ? request.getExpectedAttendees() : 1;
+
+            int totalCapacity = (resource.getCapacity() != null)
+                    ? resource.getCapacity() : 1;
+
+            int alreadyBooked = bookingRepository.sumBookedQuantity(
+                    resource.getId(), request.getStartTime(), request.getEndTime());
+
+            if (alreadyBooked + requested > totalCapacity) {
+                int remaining = totalCapacity - alreadyBooked;
+                throw new BadRequestException(
+                    "Not enough units available for this time slot. " +
+                    "Requested: " + requested + ", " +
+                    "Available: " + (remaining < 0 ? 0 : remaining) + " / " + totalCapacity);
+            }
+        } else {
+            // For venues (LECTURE_HALL, LAB, MEETING_ROOM): strict single-booking conflict check
+            List<Booking> conflicts = bookingRepository.findConflictingBookings(
+                    resource.getId(), request.getStartTime(), request.getEndTime());
+            if (!conflicts.isEmpty()) {
+                throw new BadRequestException(
+                        "Time slot conflicts with an existing approved booking for this resource");
+            }
         }
 
         Booking booking = Booking.builder()

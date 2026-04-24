@@ -37,4 +37,14 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("userId") Long userId,
             @Param("resourceId") Long resourceId,
             @Param("status") BookingStatus status);
+
+     @Query("SELECT COALESCE(SUM(b.expectedAttendees), 0) FROM Booking b "
+     + "WHERE b.resource.id = :resourceId "
+     + "AND b.status IN ('APPROVED', 'PENDING') "
+     + "AND b.startTime < :endTime "
+     + "AND b.endTime > :startTime")
+     Integer sumBookedQuantity(
+        @Param("resourceId") Long resourceId,
+        @Param("startTime") LocalDateTime startTime,
+        @Param("endTime") LocalDateTime endTime);
 }
