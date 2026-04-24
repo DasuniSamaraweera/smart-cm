@@ -201,6 +201,12 @@ export default function CreateResourcePage() {
   const handleSubmit = (e) => {
     e.preventDefault()
 
+    const phoneDigits = form.contactNumber.replace(/\D/g, '')
+    if (form.contactNumber && phoneDigits.length !== 10) {
+      toast.error('Contact number must contain exactly 10 digits')
+      return
+    }
+
     const payload = {
       name: form.resource,
       type: mapToBackendType(form.resourceType, form.resourceSubcategory),
@@ -210,7 +216,7 @@ export default function CreateResourcePage() {
       resourceCategory: form.resourceType,
       resourceSubcategory: form.resourceSubcategory,
       contactPerson: form.contactPerson || null,
-      contactNumber: form.contactNumber || null,
+      contactNumber: phoneDigits || null,
       availabilityDate: form.availableDate,
       availabilityStart: form.availableFromTime || null,
       availabilityEnd: form.availableToTime || null,
@@ -382,8 +388,10 @@ export default function CreateResourcePage() {
                 id="contactNumber"
                 type="tel"
                 value={form.contactNumber}
-                onChange={(e) => updateField('contactNumber', e.target.value)}
-                placeholder="e.g. +94 77 123 4567"
+                onChange={(e) => updateField('contactNumber', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                inputMode="numeric"
+                maxLength={10}
+                placeholder="e.g. 0712345678"
                 className="mt-1.5 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
               />
             </div>
