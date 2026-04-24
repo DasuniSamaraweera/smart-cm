@@ -193,7 +193,6 @@ public class TicketService {
         }
         
         return mapToResponse(saved);
-        return buildDetailResponse(saved);
     }
 
     @Transactional
@@ -240,8 +239,7 @@ public class TicketService {
         );
         
         return mapToResponse(saved);
-        return buildDetailResponse(saved);
-    }
+        }
 
     @Transactional
     public CommentResponse addComment(Long ticketId, CommentRequest request) {

@@ -27,7 +27,6 @@ public class ResourceService {
     private final CurrentUser currentUser;
 
     private static final Set<String> LECTURER_ONLY_SUBCATEGORIES = Set.of(
-            "Computer Labs",
             "Exam Papers (Current / Unreleased)",
             "Marking Schemes & Answer Keys",
             "Confidential Course Materials (Draft Notes / Internal Content)",
