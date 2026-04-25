@@ -36,6 +36,7 @@ export default function TicketDetails() {
   const [assigning, setAssigning] = useState(false);
   const [resolutionNotesInput, setResolutionNotesInput] = useState('');
   const [rejectionReasonInput, setRejectionReasonInput] = useState('');
+  const [adminNextStatus, setAdminNextStatus] = useState('');
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [attachmentUrls, setAttachmentUrls] = useState({});
   const [attachmentsLoading, setAttachmentsLoading] = useState(false);
@@ -47,6 +48,7 @@ export default function TicketDetails() {
     setSelectedAssignee(ticketData.assignedTo?.id ? String(ticketData.assignedTo.id) : '');
     setResolutionNotesInput(ticketData.resolutionNotes || '');
     setRejectionReasonInput(ticketData.rejectionReason || '');
+    setAdminNextStatus('');
   };
 
   useEffect(() => {
@@ -197,6 +199,7 @@ export default function TicketDetails() {
       setStatusUpdating(true);
       const res = await ticketApi.updateStatus(ticket.id, payload);
       applyTicketState(res.data);
+      setAdminNextStatus('');
       toast.success(`Ticket marked as ${nextStatus.replace('_', ' ')}`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update status');
@@ -210,6 +213,7 @@ export default function TicketDetails() {
 
   const isAssignedTechnician =
     user?.role === 'TECHNICIAN' && Number(ticket.assignedTo?.id) === Number(user?.id);
+  const canMarkInProgress = isAdmin && ticket.status === 'OPEN';
   const canReject = isAdmin && ticket.status !== 'CLOSED' && ticket.status !== 'REJECTED';
   const canClose = isAdmin && ticket.status === 'RESOLVED';
   const canResolve = isAssignedTechnician && ticket.status === 'IN_PROGRESS';
@@ -458,6 +462,28 @@ export default function TicketDetails() {
               )}
 
               <div className="space-y-3 border-t border-slate-200 dark:border-slate-700 pt-3">
+                {canMarkInProgress && (
+                  <>
+                    <Select value={adminNextStatus} onValueChange={setAdminNextStatus}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select next status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="IN_PROGRESS">IN_PROGRESS</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={() => handleStatusUpdate(adminNextStatus)}
+                      disabled={statusUpdating || !adminNextStatus}
+                    >
+                      {statusUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Update Status
+                    </Button>
+                  </>
+                )}
+
                 {canResolve && (
                   <>
                     <Textarea
