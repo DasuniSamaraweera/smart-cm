@@ -1,4 +1,4 @@
-import { BookOpen, Building2, CircleEllipsis, FlaskConical, Laptop, MonitorPlay, Wrench } from 'lucide-react'
+import { BookOpen, Building2, CircleEllipsis, FlaskConical, Laptop, Wrench } from 'lucide-react'
 
 export const resourceTypeCards = [
   {
@@ -24,14 +24,6 @@ export const resourceTypeCards = [
     icon: BookOpen,
     value: 'Study materials',
     tone: 'from-teal-500/15 to-cyan-500/10',
-  },
-  {
-    key: 'multimedia-resources',
-    title: 'Multimedia resources',
-    description: 'Streaming and multimedia assets for learning and teaching.',
-    icon: MonitorPlay,
-    value: 'Multimedia resources',
-    tone: 'from-violet-500/15 to-indigo-500/10',
   },
   {
     key: 'laboratory-resources',
