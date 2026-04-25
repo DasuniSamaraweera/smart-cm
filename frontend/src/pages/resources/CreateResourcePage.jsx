@@ -21,7 +21,6 @@ const resourceTypeOptions = [
   { value: 'Electronic equipment', label: 'Electronic equipment' },
   { value: 'Facilities (Locations)', label: 'Facilities (Locations)' },
   { value: 'Study materials', label: 'Study materials' },
-  { value: 'Multimedia resources', label: 'Multimedia resources' },
   { value: 'Laboratory resources', label: 'Laboratory resources' },
   { value: 'Shared utilities', label: 'Shared utilities' },
   { value: 'Other', label: 'Other' },
@@ -64,17 +63,6 @@ const subcategoryOptions = {
     'Confidential Course Materials (Draft Notes / Internal Content)',
     'Student Assessment Records & Grading Sheets',
     'Research Data Sets (Restricted / Ongoing Research)',
-    'Other',
-  ],
-  'Multimedia resources': [
-    'Educational Videos',
-    'Recorded Lectures',
-    'Webinars / Online Sessions',
-    'Podcasts',
-    'Documentaries',
-    'Animation / Simulation Videos',
-    'Virtual Reality (VR) Content',
-    'Audio Books',
     'Other',
   ],
   'Laboratory resources': [
@@ -128,7 +116,6 @@ function mapToBackendType(resourceType, subcategory) {
   if (
     resourceType === 'Electronic equipment'
     || resourceType === 'Study materials'
-    || resourceType === 'Multimedia resources'
     || resourceType === 'Other'
   ) {
     return 'EQUIPMENT'

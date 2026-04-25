@@ -191,17 +191,6 @@ function getMatchProfile(categoryValue) {
     }
   }
 
-  if (categoryValue === 'Multimedia resources') {
-    return {
-      useSubcategory: true,
-      useLocation: true,
-      useCapacity: false,
-      useSchedule: false,
-      capacityLabel: 'Desired amount',
-      helperText: 'Best Match uses category and location relevance for multimedia resources.',
-    }
-  }
-
   if (categoryValue === 'Laboratory resources') {
     return {
       useSubcategory: true,
