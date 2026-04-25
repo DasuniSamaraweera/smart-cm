@@ -39,6 +39,8 @@ const validateFiles = (files) => {
   return '';
 };
 
+const sanitizePhone = (value) => value.replace(/\D/g, '').slice(0, 10);
+
 export default function CreateTicket() {
   const [formData, setFormData] = useState({ 
     title: '', 
@@ -115,8 +117,8 @@ export default function CreateTicket() {
       errors.description = 'Description is required.';
     }
 
-    if (!formData.contactPhone.trim()) {
-      errors.contactPhone = 'Contact phone is required.';
+    if (formData.contactPhone.length !== 10) {
+      errors.contactPhone = 'Phone number must be exactly 10 digits';
     }
 
     if (!formData.contactEmail.trim()) {
@@ -160,12 +162,13 @@ export default function CreateTicket() {
     setLoading(true);
     
     try {
+      const sanitizedPhone = sanitizePhone(formData.contactPhone);
       const payload = {
         ...formData,
         resourceId: parsedResourceId,
         category: formData.category || null,
         contactEmail: formData.contactEmail || null,
-        contactPhone: formData.contactPhone || null,
+        contactPhone: sanitizedPhone || null,
       };
 
       const data = new FormData();
@@ -312,10 +315,20 @@ export default function CreateTicket() {
                   id="contactPhone"
                   value={formData.contactPhone} 
                   onChange={e => {
-                    setFormData({...formData, contactPhone: e.target.value});
-                    clearFieldError('contactPhone');
+                    const nextPhone = sanitizePhone(e.target.value);
+                    setFormData({...formData, contactPhone: nextPhone});
+                    if (nextPhone.length === 10) {
+                      clearFieldError('contactPhone');
+                    } else {
+                      setFormErrors((prev) => ({
+                        ...prev,
+                        contactPhone: 'Phone number must be exactly 10 digits',
+                      }));
+                    }
                   }} 
-                  placeholder="e.g. +1234567890"
+                  inputMode="numeric"
+                  maxLength={10}
+                  placeholder="0712345678"
                 />
                 {formErrors.contactPhone && (
                   <p className="text-sm text-red-600">{formErrors.contactPhone}</p>
