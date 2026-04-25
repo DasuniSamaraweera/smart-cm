@@ -2,13 +2,16 @@ package com.smartcampus.service;
 
 import com.smartcampus.dto.ResourceRequest;
 import com.smartcampus.dto.ResourceResponse;
+import com.smartcampus.exception.BadRequestException;
 import com.smartcampus.exception.ForbiddenException;
 import com.smartcampus.exception.ResourceNotFoundException;
 import com.smartcampus.model.Resource;
 import com.smartcampus.model.User;
+import com.smartcampus.model.enums.BookingStatus;
 import com.smartcampus.model.enums.ResourceStatus;
 import com.smartcampus.model.enums.ResourceType;
 import com.smartcampus.model.enums.UserRole;
+import com.smartcampus.repository.BookingRepository;
 import com.smartcampus.repository.ResourceRepository;
 import com.smartcampus.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,7 @@ import java.util.stream.Stream;
 public class ResourceService {
 
     private final ResourceRepository resourceRepository;
+    private final BookingRepository bookingRepository;
     private final CurrentUser currentUser;
 
     private static final Set<String> LECTURER_ONLY_SUBCATEGORIES = Set.of(
@@ -135,6 +139,16 @@ public class ResourceService {
         if (!resourceRepository.existsById(id)) {
             throw new ResourceNotFoundException("Resource", id);
         }
+
+        long activeBookingCount = bookingRepository.countByResourceIdAndStatusIn(
+                id,
+                List.of(BookingStatus.PENDING, BookingStatus.APPROVED)
+        );
+
+        if (activeBookingCount > 0) {
+            throw new BadRequestException("Cannot delete this resource because it is currently booked.");
+        }
+
         resourceRepository.deleteById(id);
     }
 

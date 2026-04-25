@@ -220,7 +220,10 @@ export default function ResourcesPage() {
       queryClient.invalidateQueries({ queryKey: ['resources'] })
       toast.success('Resource deleted successfully')
     },
-    onError: () => toast.error('Failed to delete resource'),
+    onError: (err) => {
+      const msg = err.response?.data?.message || 'Failed to delete resource'
+      toast.error(msg)
+    },
   })
 
   const handleEdit = (resource) => {
